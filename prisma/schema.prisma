@@ -1,0 +1,26 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id           String    @id @default(cuid())
+    email        String          @unique
+    creationDate DateTime        @default(now())
+    stripeBasicProduct String?
+    stripeBasicProductData  Json?
+    stripeAllAccessProduct String?
+    stripeAllAccessProductData  Json?
+    stripeChatgptTemplateProduct String?
+    stripeChatgptTemplateProductData  Json?
+    stripeStoreTemplateProduct String?
+    stripeStoreTemplateProductData  Json?
+    
+}
