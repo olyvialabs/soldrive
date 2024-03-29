@@ -38,7 +38,8 @@ function GlobalDnD(props) {
         var reader = new FileReader();
         reader.onload = function (e) {
           var contents = e.target.result;
-          props.onFileRead(file);
+          console.log({ contents });
+          props.onFileRead(contents);
         };
         reader.readAsText(file);
       },

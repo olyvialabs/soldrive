@@ -29,6 +29,8 @@
     "canvas-confetti": "^1.9.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "crypto": "^1.0.1",
+    "ecies-geth": "^1.7.1",
     "ipfs-http-client": "^60.0.1",
     "jwt-decode": "^4.0.0",
     "jwt-encode": "^1.0.1",
