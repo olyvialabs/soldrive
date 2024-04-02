@@ -20,11 +20,7 @@ const WalletMultiButtonDynamic = dynamic(
   { ssr: false },
 );
 
-const WalletConnectionButton = ({
-  type,
-}: {
-  type: "both" | "connect" | "disconnect";
-}) => {
+const AllSolanaContent = ({ children }: { children: React.ReactNode }) => {
   const network = WalletAdapterNetwork.Devnet;
 
   // You can also provide a custom RPC endpoint
@@ -49,18 +45,29 @@ const WalletConnectionButton = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [network],
   );
+
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          {["both", "connect"].includes(type) && <WalletMultiButtonDynamic />}
-          {["both", "disconnect"].includes(type) && (
-            <WalletDisconnectButtonDynamic />
-          )}
-        </WalletModalProvider>
+        <WalletModalProvider>{children}</WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
   );
 };
 
-export { WalletConnectionButton };
+const WalletConnectionButton = ({
+  type,
+}: {
+  type: "both" | "connect" | "disconnect";
+}) => {
+  return (
+    <AllSolanaContent>
+      {["both", "connect"].includes(type) && <WalletMultiButtonDynamic />}
+      {["both", "disconnect"].includes(type) && (
+        <WalletDisconnectButtonDynamic />
+      )}
+    </AllSolanaContent>
+  );
+};
+
+export { AllSolanaContent, WalletConnectionButton };
