@@ -1,3 +1,4 @@
+"use client";
 function Card({ title, children }) {
   const cardStyle = {
     backgroundColor: "#111021",
@@ -27,6 +28,7 @@ function Card({ title, children }) {
     </div>
   );
 }
+
 export const LandingScreen = () => {
   const containerStyle = {
     maxWidth: "1200px",
@@ -36,6 +38,7 @@ export const LandingScreen = () => {
     gridTemplateColumns: "repeat(3, 1fr)",
     gap: "20px",
   };
+
   return (
     <>
       <nav className="fixed top-0 z-30 w-full bg-black bg-opacity-75 py-3 backdrop-blur-lg backdrop-filter">
@@ -84,7 +87,7 @@ export const LandingScreen = () => {
             </div>
             <div className="hidden items-center space-x-1 md:flex">
               <a
-                href="#"
+                href="/app"
                 className="rounded bg-green-500 px-3 py-2 text-white transition duration-300 hover:bg-green-600"
               >
                 Launch App
@@ -124,7 +127,7 @@ export const LandingScreen = () => {
               storage interface for any user. Powered by Solana.
             </p>
             <a
-              href="#"
+              href="/app"
               className="inline-block rounded-full bg-green-500 px-8 py-3 font-bold uppercase tracking-widest text-white transition duration-200 hover:bg-green-600"
             >
               Try SolDrive
