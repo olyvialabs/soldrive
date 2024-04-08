@@ -25,9 +25,7 @@ export default function RootLayout({
       <body
         className={`font-sans ${inter.variable} min-h-screen bg-background`}
       >
-        <AppHeader />
         {children}
-        <FooterContent />
         <Toaster />
       </body>
     </html>

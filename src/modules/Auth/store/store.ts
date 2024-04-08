@@ -10,10 +10,13 @@ export interface AuthStore {
   userInformation: AuthUserType | null;
   setAuthUserInfo: (user: AuthUserType) => void;
   clearAuth: () => void;
+  shouldShowAuthModal: boolean;
+  changeAuthModalVisibility: (newValue: boolean) => void;
 }
 
 const initialState = {
   userInformation: null,
+  shouldShowAuthModal: true,
 };
 
 const useAuthStore = create<AuthStore>()(
@@ -25,6 +28,9 @@ const useAuthStore = create<AuthStore>()(
       },
       clearAuth: () => {
         set({ userInformation: null });
+      },
+      changeAuthModalVisibility: (newValue: boolean) => {
+        set({ shouldShowAuthModal: newValue });
       },
     }),
     {

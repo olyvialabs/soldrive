@@ -1,4 +1,5 @@
 import { createEnv } from "@t3-oss/env-nextjs";
+import { z } from "zod";
 
 export const env = createEnv({
   /**
@@ -11,13 +12,23 @@ export const env = createEnv({
    * isn't built with invalid env vars. To expose them to the client, prefix them with
    * `NEXT_PUBLIC_`.
    */
-  client: {},
+  client: {
+    NEXT_PUBLIC_SOLANA_CLUSTER_API: z.string(),
+    NEXT_PUBLIC_USERS_CONTRACT_ADDRESS: z.string(),
+    NEXT_PUBLIC_FILES_RELATIONSHIP_CONTRACT_ADDRESS: z.string(),
+  },
 
   /**
    * You can't destruct `process.env` as a regular object in the Next.js edge runtimes (e.g.
    * middlewares) or client-side so we need to destruct manually.
    */
-  runtimeEnv: {},
+  runtimeEnv: {
+    NEXT_PUBLIC_SOLANA_CLUSTER_API: process.env.NEXT_PUBLIC_SOLANA_CLUSTER_API,
+    NEXT_PUBLIC_USERS_CONTRACT_ADDRESS:
+      process.env.NEXT_PUBLIC_USERS_CONTRACT_ADDRESS,
+    NEXT_PUBLIC_FILES_RELATIONSHIP_CONTRACT_ADDRESS:
+      process.env.NEXT_PUBLIC_FILES_RELATIONSHIP_CONTRACT_ADDRESS,
+  },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
    * useful for Docker builds.

@@ -8,6 +8,9 @@ import { encrypt, decrypt, getPublic } from "ecies-geth";
 import { Button } from "~/components/ui/button";
 import crypto from "crypto";
 import { AllSolanaContent } from "~/modules/Auth/components/WalletConnectionButton";
+import { Ed25519Provider } from "key-did-provider-ed25519";
+import KeyResolver from "key-did-resolver";
+import { DID } from "dids";
 
 const projectId = "2IInhOpJffZRxaPQqK3j97jWqHb";
 const projectSecret = "e8624fdd9dddbe74c18be3d9c84ade1b";
@@ -22,28 +25,92 @@ const ipfs = ipfsHttpClient({
   headers: { authorization: auth },
 });
 
+const message = "Sign this message to generate your DID.";
+
+const DidGenerator = ({
+  onChangeDid,
+}: {
+  onChangeDid: (did: string) => void;
+}) => {
+  const [didDocumentCid, setDidDocumentCid] = useState("");
+
+  const connectWalletAndGetSignature = async () => {
+    try {
+      // Check if Phantom is available
+      if ("solana" in window) {
+        const provider = window.solana;
+        if (provider.isPhantom) {
+          // Prompt user to connect their wallet if not already connected
+          await provider.connect();
+          const publicKey = provider.publicKey.toString();
+          const encodedMessage = new TextEncoder().encode(message);
+
+          // Request signature from the user
+          const signedMessage = await provider.signMessage(
+            encodedMessage,
+            "utf8",
+          );
+          console.log("Signature:", signedMessage.signature);
+
+          // Fake username for demonstration purposes
+          const username = "THE_TEST_USERNAME";
+
+          // Construct DID document
+          const didDocument = {
+            username: username,
+            walletPublicKey: publicKey,
+            // You can add additional information here as needed
+          };
+
+          // Save the DID document on IPFS
+          const { cid } = await ipfs.add(JSON.stringify(didDocument));
+          setDidDocumentCid(cid.toString());
+          onChangeDid(cid.toString());
+          console.log("DID Document stored on IPFS with CID:", cid.toString());
+        } else {
+          console.log("Phantom wallet not found!");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to connect to wallet or get signature:", error);
+    }
+  };
+
+  return (
+    <div>
+      <h1>STEP 1: GENERATE DID</h1>
+      <Button
+        onClick={connectWalletAndGetSignature}
+        className=" p-8 text-2xl text-white"
+      >
+        Generate DID Document
+      </Button>
+      {didDocumentCid && <div>DID Document CID: {didDocumentCid}</div>}
+    </div>
+  );
+};
+
 const FileTestContent = () => {
-  const [inputKey, setInputKey] = useState("SomeRandomKey");
   const [cid, setCid] = useState("");
+  const [didDocumentCid, setDidDocumentCid] = useState("");
   const [fileContent, setFileContent] = useState("");
+
+  // const generateDid = async () => {
+  //   const seedBuffer = await stringTo32ByteKey();
+  //   const seed = new Uint8Array(seedBuffer?.buffer!);
+  //   const provider = new Ed25519Provider(seed);
+  //   const did = new DID({ provider, resolver: KeyResolver.getResolver() });
+  //   //console.log({ did, didd: did.id });
+  //   console.log({ did });
+  //   await did.authenticate();
+  //   console.log({ did, didd: did.id });
+  //   setUserDID(did.id);
+
+  // };
 
   async function stringTo32ByteKey() {
     const hash = crypto.createHash("sha256");
     // hash.update(inputKey);
-    const message = `soldrive.app wants you to sign in with your Solana account:
-solana:mainnet:FYpB58cLw5cwiN763ayB2sFT8HLF2MRUBbbyRgHYiRpK
-
-Click Sign or Approve only means you have proved this wallet is owned by you.
-
-URI: https://soldrive.app
-Version: 1
-Chain ID: solana:mainnet
-Nonce: bZQJ0SL6gJ
-Issued At: 2022-10-25T16:52:02.748Z
-Resources:
-- https://foo.com
-- https://bar.com`;
-
     const provider = window.phantom?.solana;
     if (!provider) {
       alert("You need a solana wallet");
@@ -68,6 +135,7 @@ Resources:
 
   const handleNewFileUpload = async (data) => {
     console.log({ data });
+    return;
     // Important! The key MUST be 32 byte long
     const privateKey = await stringTo32ByteKey();
 
@@ -81,7 +149,7 @@ Resources:
 
   const handleDecryptCID = async () => {
     if (!cid) {
-      console.error("No CID available for decryption.");
+      console.error("No CID available for decrypti on.");
       return;
     }
 
@@ -104,10 +172,12 @@ Resources:
   return (
     <AllSolanaContent>
       <div>
+        <DidGenerator onChangeDid={setDidDocumentCid} />
+        <h1 className="mt-28">STEP 2: UPLOAD FILE</h1>
         <GlobalDnD onFileRead={handleNewFileUpload} />
-        <div className="mt-4 flex w-full flex-col items-center justify-center">
+        <div className="mt-4 flex w-full flex-col">
           <label className="text-2xl">
-            Current CID:{" "}
+            Current upload CID:{" "}
             {cid ? (
               <a
                 target="_blank"
@@ -120,22 +190,11 @@ Resources:
               "No file uploaded yet"
             )}
           </label>
-          <label className="mt-28 text-2xl">The Key to encrypt file</label>
-          <Input
-            placeholder="The key to encrypt"
-            className=" w-1/2 rounded-full text-xl"
-            onChange={(e) => setInputKey(e.target.value)}
-            value={inputKey}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleNewFileUpload("test");
-              }
-            }}
-          />
+          <h1 className="mt-28">STEP 3: Decrypt</h1>
           <Button
             disabled={!cid}
             onClick={handleDecryptCID}
-            className="mt-28 w-full p-8 text-2xl text-white"
+            className=" p-8 text-2xl text-white"
           >
             Decrypt CID
           </Button>

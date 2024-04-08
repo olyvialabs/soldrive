@@ -8,6 +8,8 @@ import {
 } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { buttonVariants } from "~/components/ui/button";
+import { cn } from "~/lib/utils";
 
 const WalletDisconnectButtonDynamic = dynamic(
   async () =>
@@ -49,7 +51,9 @@ const AllSolanaContent = ({ children }: { children: React.ReactNode }) => {
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>{children}</WalletModalProvider>
+        <WalletModalProvider className="z-[999999]">
+          {children}
+        </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
   );
@@ -62,9 +66,15 @@ const WalletConnectionButton = ({
 }) => {
   return (
     <AllSolanaContent>
-      {["both", "connect"].includes(type) && <WalletMultiButtonDynamic />}
+      {["both", "connect"].includes(type) && (
+        <WalletMultiButtonDynamic
+          className={cn("text-white", buttonVariants({ variant: "default" }))}
+        />
+      )}
       {["both", "disconnect"].includes(type) && (
-        <WalletDisconnectButtonDynamic />
+        <WalletDisconnectButtonDynamic
+          className={cn(buttonVariants({ variant: "outline" }))}
+        />
       )}
     </AllSolanaContent>
   );
