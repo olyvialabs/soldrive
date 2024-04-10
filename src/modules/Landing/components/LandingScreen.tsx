@@ -310,7 +310,6 @@ export const LandingScreen = () => {
                 className="mb-2 h-12 lg:mb-0 lg:mr-4 lg:h-16"
               />
               <div>
-                <p>Contact us: hi@soldrive</p>
                 <p>©2024 SolDrive.</p>
               </div>
             </div>
