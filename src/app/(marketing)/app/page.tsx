@@ -8,8 +8,8 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-  title: "Test Page",
-  description: "Test Page",
+  title: "App Page",
+  description: "App Page",
 };
 
 export default function TestPage() {

@@ -28,6 +28,7 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { EmptyPlaceholder } from "./FileDisplayNoItems";
 import { AddNewFileButton } from "./AddNewFileButton";
 import { Button } from "~/components/ui/button";
+import { AllSolanaContent } from "~/modules/Auth/components/WalletConnectionButton";
 
 const LoadingComponent = () => {
   return (
@@ -139,55 +140,57 @@ const FileDisplayContent = () => {
   }, []);
 
   return (
-    <div className="mx-auto flex w-full justify-center">
-      <div className="flex h-full w-full max-w-[1250px] items-stretch gap-2">
-        <div className="hidden min-w-[250px] px-1 md:block">
-          <AddNewFileButton />
-          <AppLeftSidenav currentSelected="home" links={sidenavItems} />
-        </div>
-        <div
-          onClick={() => {
-            if (fileSelection.filesSelected.length) {
-              clearFileSelection();
-            }
-          }}
-          className="mx-auto flex w-[1280px] max-w-full flex-1"
-        >
-          <div className="h-full w-full">
-            {isDragging || forcedUploadFiles ? (
-              <>
-                <GlobalDnD />
-                {forcedUploadFiles && (
-                  <Button
-                    onClick={() => {
-                      changeForcedUploadFiles(false);
-                    }}
-                    variant="link"
-                    className="px-4"
-                    size="lg"
-                  >
-                    Close file uploader
-                  </Button>
-                )}
-              </>
-            ) : (
-              <>
-                <FileDisplayControls
-                  balancesLoading={balancesLoading}
-                  balances={balances}
-                />
-                <FileDisplayContentByView
-                  balancesLoading={balancesLoading}
-                  balances={balances}
-                />
-              </>
-            )}
+    <AllSolanaContent>
+      <div className="mx-auto flex w-full justify-center">
+        <div className="flex h-full w-full max-w-[1250px] items-stretch gap-2">
+          <div className="hidden min-w-[250px] px-1 md:block">
+            <AddNewFileButton />
+            <AppLeftSidenav currentSelected="home" links={sidenavItems} />
           </div>
+          <div
+            onClick={() => {
+              if (fileSelection.filesSelected.length) {
+                clearFileSelection();
+              }
+            }}
+            className="mx-auto flex w-[1280px] max-w-full flex-1"
+          >
+            <div className="h-full w-full">
+              {isDragging || forcedUploadFiles ? (
+                <>
+                  <GlobalDnD />
+                  {forcedUploadFiles && (
+                    <Button
+                      onClick={() => {
+                        changeForcedUploadFiles(false);
+                      }}
+                      variant="link"
+                      className="px-4"
+                      size="lg"
+                    >
+                      Close file uploader
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <FileDisplayControls
+                    balancesLoading={balancesLoading}
+                    balances={balances}
+                  />
+                  <FileDisplayContentByView
+                    balancesLoading={balancesLoading}
+                    balances={balances}
+                  />
+                </>
+              )}
+            </div>
+          </div>
+          <PreviewFileDetails balances={balances} />
         </div>
-        <PreviewFileDetails balances={balances} />
+        {shouldShowAuthModal && <OnboardingDialog />}
       </div>
-      {shouldShowAuthModal && <OnboardingDialog />}
-    </div>
+    </AllSolanaContent>
   );
 };
 

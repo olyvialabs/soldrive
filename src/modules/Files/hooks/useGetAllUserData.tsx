@@ -54,13 +54,16 @@ const useGetAllUserData = () => {
             const metadata = parseMetadata(metadataLog);
             allMetadataLogs.push(metadata);
           });
+          setData(allMetadataLogs);
         }
       } catch (error) {
+        console.log({ error });
+        console.log({ error });
+        console.log({ error });
         console.error("Error fetching transaction:", error);
       }
     }
 
-    setData(allMetadataLogs);
     console.log({ allMetadataLogs });
     console.log({ allMetadataLogs });
     //setLogs(allMetadataLogs);

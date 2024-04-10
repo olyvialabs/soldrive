@@ -27,8 +27,7 @@ const getColor = (props) => {
 
 const Container = styled.div``;
 
-const useEncryptionFileEncryption = () => {
-  const { data: usersData, loading: userDataLoading } = useGetAllUserData();
+const useEncryptionFileEncryption = (usersData: Array<any>) => {
   const wallet = useWallet();
 
   const { mintToken, isLoading } = useSaveFileDataOnChain();
@@ -55,11 +54,6 @@ const useEncryptionFileEncryption = () => {
   };
 
   const encryptFile = async (content: any, fileName: string, size: number) => {
-    if (userDataLoading) {
-      alert("Wait until data loads.");
-      return;
-    }
-
     //wallet.publicKey?.toString()
     const targetWallet = wallet.publicKey?.toString();
 
@@ -69,6 +63,10 @@ const useEncryptionFileEncryption = () => {
     const foundUser = (usersData || []).find(
       (item) => item["UserMetadata user_solana"] === targetWallet,
     );
+
+    console.log({ usersData });
+    console.log({ usersData });
+    console.log({ usersData });
 
     if (!foundUser) {
       alert("User not found.");
@@ -140,7 +138,8 @@ const useEncryptionFileEncryption = () => {
 };
 
 function GlobalDnD() {
-  const { encryptFile } = useEncryptionFileEncryption();
+  const { data: usersData, loading: userDataLoading } = useGetAllUserData();
+  const { encryptFile } = useEncryptionFileEncryption(usersData);
 
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } =
     useDropzone({
@@ -156,6 +155,10 @@ function GlobalDnD() {
         reader.readAsText(file);
       },
     });
+
+  if (userDataLoading) {
+    return <div>Cargåndo</div>;
+  }
 
   return (
     <AllSolanaContent>
