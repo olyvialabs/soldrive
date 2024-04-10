@@ -30,15 +30,6 @@ function Card({ title, children }) {
 }
 
 export const LandingScreen = () => {
-  const containerStyle = {
-    maxWidth: "1200px",
-    margin: "0 auto",
-    padding: "0 15px",
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "20px",
-  };
-
   return (
     <>
       <nav className="fixed top-0 z-30 w-full bg-black bg-opacity-75 py-3 backdrop-blur-lg backdrop-filter">
@@ -285,18 +276,9 @@ export const LandingScreen = () => {
         </div>
       </section>
 
-      <section style={{ padding: "40px 0" }}>
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            padding: "0 15px",
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "20px",
-          }}
-        >
-          <div style={containerStyle}>
+      <section className="flex justify-center" style={{ padding: "40px 0" }}>
+        <div className="w-[1280px] max-w-full">
+          <div className="grid grid-cols-1 md:grid-cols-3">
             <Card title="Data Custody">
               We offer the ability to manage your data in an easy & funny way.
               Become 100% owner of your personal information & share it

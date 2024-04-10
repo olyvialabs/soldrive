@@ -51,8 +51,8 @@ const WaitlistContent = () => {
           readOnly={loading}
           value={walletAddress}
           onChange={(e) => setWalletAddress(e.target.value)}
-          placeholder="Wallet"
-          type="text"
+          placeholder="Your email"
+          type="email"
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               handleSubmit();
