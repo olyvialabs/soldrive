@@ -141,7 +141,7 @@ const CreateUserButton: React.FC = () => {
     );
 
     const customInstruction = new TransactionInstruction({
-      keys: [], // You need to specify the keys required by your on-chain program here
+      keys: [],
       programId: PROGRAM_ID,
       data: userMetadataBuffer,
     });

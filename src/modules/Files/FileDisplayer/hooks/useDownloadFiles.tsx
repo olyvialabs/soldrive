@@ -7,6 +7,7 @@ import useTokenBalances from "./useGetAllFilesData";
 import bs58 from "bs58";
 import { SIGN_MESSAGE } from "~/modules/Layout/components/CreateNewUser";
 import crypto from "crypto";
+import { toast } from "sonner";
 
 const useDownloadFiles = (wallet: string, allFiles: FileDetails[]) => {
   const { fileSelection } = useFilesStore();
@@ -42,7 +43,9 @@ const useDownloadFiles = (wallet: string, allFiles: FileDetails[]) => {
       (item) => item["UserMetadata user_solana"] === wallet,
     );
     if (!foundUser) {
-      alert("User not found.");
+      toast("Data missmatch with solana, trying again will fix the issue:)!", {
+        position: "top-center",
+      });
       return;
     }
 
@@ -51,8 +54,8 @@ const useDownloadFiles = (wallet: string, allFiles: FileDetails[]) => {
     for await (const chunk of ipfsClient.cat(userDid)) {
       chunks.push(chunk);
     }
-    const walletIpfsFileContent = Buffer.concat(chunks);
-    const fileContentJson = JSON.parse(walletIpfsFileContent.toString());
+    //const walletIpfsFileContent = Buffer.concat(chunks);
+    //const fileContentJson = JSON.parse(walletIpfsFileContent.toString());
     console.log({ fileSelection });
     for (let fileId of fileSelection.filesSelected) {
       const foundItem = allFiles.find((item) => item.file_id === fileId);
@@ -70,8 +73,8 @@ const useDownloadFiles = (wallet: string, allFiles: FileDetails[]) => {
         for await (const chunk of ipfsClient.cat(foundItem.cid)) {
           chunks.push(chunk);
         }
-        const ipfsFileContent = Buffer.concat(chunks);
-        const walletIpfsFileContent = Buffer.concat(chunks);
+        // const ipfsFileContent = Buffer.concat(chunks);
+        // const walletIpfsFileContent = Buffer.concat(chunks);
 
         const { privateKeyString } = await getUniqueCredentials();
         // Decode the private key string
@@ -91,10 +94,9 @@ const useDownloadFiles = (wallet: string, allFiles: FileDetails[]) => {
           return;
         }
 
-        const decoder = new TextDecoder();
-        const decryptedString = decoder.decode(decryptedContent);
-        var blob = new Blob([decryptedString], {
-          type: "text/plain",
+        let contentType = "application/octet-stream";
+        var blob = new Blob([decryptedContent], {
+          type: contentType,
         });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");

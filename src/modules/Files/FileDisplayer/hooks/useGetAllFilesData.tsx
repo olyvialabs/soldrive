@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import bs58 from "bs58";
 import { env } from "~/env";
@@ -36,7 +36,7 @@ const useTokenBalances = (walletAddress) => {
     const getContractLogs = async (contractAddress) => {
       const publicKey = new PublicKey(contractAddress);
       const signatures = await connection.getSignaturesForAddress(publicKey, {
-        limit: 10,
+        limit: 100,
       });
       const allLogs = [];
 
@@ -46,26 +46,23 @@ const useTokenBalances = (walletAddress) => {
             signatureInfo.signature,
             { commitment: "confirmed" },
           );
+          console.log({ testing: "true", transaction });
+          console.log({ testing: "true", transaction });
+          console.log({ testing: "true", transaction });
+          console.log({ testing: "true", transaction });
           if (transaction && transaction.meta && transaction.meta.logMessages) {
-            const mintMessages = transaction.meta.logMessages.filter((log) =>
-              log.includes("Token minted with mint address:"),
-            );
-            console.log({ mintMessages });
-            console.log({ mintMessages });
-            console.log({ mintMessages });
+            // Find specific log messages
             const metadataMessages = transaction.meta.logMessages.filter(
               (log) => log.startsWith("Program log: Deserialized metadata:"),
             );
-            if (mintMessages.length > 0 && metadataMessages.length > 0) {
+            // Only add if both types of messages exist
+            if (metadataMessages.length > 0) {
               const metadata = parseMetadata(metadataMessages[0]);
-              console.log(metadata);
-              console.log(metadata);
-              console.log(metadata);
-              const mintMessageChunks = mintMessages[0]?.split(" ");
+              console.log({ testing: "true", metadata });
+              console.log({ testing: "true", metadata });
+              console.log({ testing: "true", metadata });
               const logObject = {
                 ...metadata,
-                mintAddress:
-                  mintMessageChunks[mintMessageChunks.length - 1].trim(),
               };
               allLogs.push(logObject);
             }
@@ -78,37 +75,6 @@ const useTokenBalances = (walletAddress) => {
       return allLogs;
     };
 
-    const getTokenAccountBalance = async (walletAddress, mintAddress) => {
-      console.log({ mintAddress, walletAddress });
-
-      try {
-        const associatedTokenAddress = await getAssociatedTokenAddress(
-          new PublicKey(mintAddress),
-          new PublicKey(walletAddress),
-        );
-        const accountInfo = await connection.getParsedAccountInfo(
-          associatedTokenAddress,
-        );
-
-        console.log({ accountInfo });
-        console.log({ accountInfo });
-        console.log({ accountInfo });
-        console.log({ accountInfo });
-        if (
-          accountInfo.value &&
-          accountInfo.value.data.parsed &&
-          accountInfo.value.data.program === "spl-token"
-        ) {
-          const tokenAmount =
-            accountInfo.value.data.parsed.info.tokenAmount.uiAmount;
-          return tokenAmount;
-        }
-      } catch (error) {
-        console.error(`Error fetching account info:`, error);
-      }
-      return 0;
-    };
-
     const fetchBalances = async () => {
       setLoading(true);
       setError(null);
@@ -117,20 +83,9 @@ const useTokenBalances = (walletAddress) => {
         const contractAddress =
           env.NEXT_PUBLIC_FILES_RELATIONSHIP_CONTRACT_ADDRESS;
         let allLogs = await getContractLogs(contractAddress);
-        console.log({ allLogs });
-        const balancesPromises = allLogs.map((log) =>
-          getTokenAccountBalance(walletAddress, log.mintAddress),
-        );
-        const balances = await Promise.all(balancesPromises);
-        let balancesWithMetadata = allLogs.map((log, index) => ({
-          ...log,
-          balance: balances[index],
-        }));
-        console.log({ balancesWithMetadata });
-        console.log({ balancesWithMetadata });
-        console.log({ balancesWithMetadata });
-        balancesWithMetadata = balancesWithMetadata.filter(
-          (item) => item.balance,
+
+        let balancesWithMetadata = allLogs.filter(
+          (item) => item.to === walletAddress,
         );
 
         setBalances(balancesWithMetadata as unknown as FileDetails[]);

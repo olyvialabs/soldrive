@@ -61,7 +61,12 @@ export function FileSelectionControls({
         </MenubarTrigger>
       </MenubarMenu>
       <MenubarMenu>
-        <MenubarTrigger className="cursor-pointer">
+        <MenubarTrigger
+          className="cursor-pointer"
+          onClick={async () => {
+            await downloadFiles();
+          }}
+        >
           <DownloadIcon className="mr-" />
         </MenubarTrigger>
       </MenubarMenu>
@@ -81,7 +86,6 @@ export function FileSelectionControls({
           </MenubarItem>
           <MenubarItem
             onClick={async () => {
-              alert("???");
               await downloadFiles();
             }}
           >

@@ -116,7 +116,7 @@ const FilePreviewInnerContentItem = ({
         </TableCell>
         <TableCell className="p-0">
           <FileRowContextWrapper file_id={item.file_id} allFiles={allFiles}>
-            {item.mintAddress}
+            {item.to}
           </FileRowContextWrapper>
         </TableCell>
         <TableCell className="p-0">
@@ -144,7 +144,11 @@ const FilePreviewInnerContentItem = ({
         )}
       >
         <CardHeader className="space-between relative flex w-full flex-row">
-          <CardTitle>{item.name || "No name"}</CardTitle>
+          <>
+            <p className="w-full flex-1 truncate pr-8 text-sm">
+              {item.name || "No name"}
+            </p>
+          </>
           <div className="absolute right-4 top-2">
             <OptionsMenu onClickMenu={handleClickMenuOptions} />
           </div>
@@ -162,7 +166,7 @@ const FilePreviewInnerContentItem = ({
             <AvatarFallback>US</AvatarFallback>
           </Avatar>
           <p className="w-full flex-1 truncate text-sm text-muted-foreground">
-            User {item.mintAddress}
+            User {item.to}
           </p>
         </CardFooter>
       </Card>

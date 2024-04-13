@@ -11,6 +11,7 @@ import crypto from "crypto";
 import { FileIcon } from "@radix-ui/react-icons";
 import { useSaveFileDataOnChain } from "./FileUploadButton";
 import { AllSolanaContent } from "~/modules/Auth/components/WalletConnectionButton";
+import { toast } from "sonner";
 
 const getColor = (props) => {
   if (props.isDragAccept) {
@@ -30,7 +31,7 @@ const Container = styled.div``;
 const useEncryptionFileEncryption = (usersData: Array<any>) => {
   const wallet = useWallet();
 
-  const { mintToken, isLoading } = useSaveFileDataOnChain();
+  const { mintToken } = useSaveFileDataOnChain();
   const getUniqueCredentials = async () => {
     const provider = window.solana;
     if (!provider) {
@@ -69,7 +70,9 @@ const useEncryptionFileEncryption = (usersData: Array<any>) => {
     console.log({ usersData });
 
     if (!foundUser) {
-      alert("User not found.");
+      toast("Data missmatch with solana, trying again will fix the issue:)!", {
+        position: "top-center",
+      });
       return;
     }
 
@@ -90,10 +93,16 @@ const useEncryptionFileEncryption = (usersData: Array<any>) => {
 
     // Encrypt the file content
     const encoder = new TextEncoder();
-    const encodedMessage = encoder.encode(content);
+    let encodedMessage;
+    if (content instanceof Uint8Array) {
+      // If content is already a Uint8Array, use it directly
+      encodedMessage = content;
+    } else {
+      // Otherwise, assume it's a string and encode it
+      encodedMessage = encoder.encode(content);
+    }
     const nonce = nacl.randomBytes(nacl.secretbox.nonceLength);
     const encryptedMessage = nacl.secretbox(encodedMessage, nonce, secretKey);
-    const asdf = encryptedMessage;
 
     // Combine the nonce and the encrypted message
     const combined = new Uint8Array(nonce.length + encryptedMessage.length);
@@ -110,6 +119,8 @@ const useEncryptionFileEncryption = (usersData: Array<any>) => {
       file_parent_id: "",
       typ: "file",
       weight: size,
+      from: targetWallet!,
+      to: targetWallet!,
     });
 
     return;
@@ -146,13 +157,23 @@ function GlobalDnD() {
       onDrop: async ([file]) => {
         var reader = new FileReader();
         reader.onload = async function (e) {
-          await encryptFile(
-            e.target?.result,
-            file?.name || "Unknown",
-            file?.size || 0,
-          );
+          const contentAsArrayBuffer = e.target?.result;
+          if (contentAsArrayBuffer) {
+            console.log({ contentAsArrayBuffer });
+            console.log({ contentAsArrayBuffer });
+            console.log({ contentAsArrayBuffer });
+            const contentAsUint8Array =
+              typeof contentAsArrayBuffer === "string"
+                ? contentAsArrayBuffer
+                : new Uint8Array(contentAsArrayBuffer);
+            await encryptFile(
+              contentAsUint8Array,
+              file?.name || "Unknown",
+              file?.size || 0,
+            );
+          }
         };
-        reader.readAsText(file);
+        reader.readAsArrayBuffer(file);
       },
     });
 

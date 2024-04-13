@@ -26,13 +26,15 @@ const PROGRAM_ID = new PublicKey(
 );
 
 class TokenMetadata {
-  constructor({ file_id, name, weight, file_parent_id, cid, typ }) {
+  constructor({ file_id, name, weight, file_parent_id, cid, typ, from, to }) {
     this.file_id = file_id;
     this.name = name;
     this.weight = BigInt(weight);
     this.file_parent_id = file_parent_id;
     this.cid = cid;
     this.typ = typ;
+    this.from = from;
+    this.to = to;
   }
 }
 
@@ -48,6 +50,8 @@ const TokenMetadataSchema = new Map([
         ["file_parent_id", "string"],
         ["cid", "string"],
         ["typ", "string"],
+        ["from", "string"],
+        ["to", "string"],
       ],
     },
   ],
@@ -56,6 +60,7 @@ const TokenMetadataSchema = new Map([
 export const useSaveFileDataOnChain = () => {
   const { publicKey, signTransaction } = useWallet();
   const [isLoading, setIsLoading] = useState(false);
+  const wallet = useWallet();
 
   const mintToken = useCallback(
     async ({
@@ -64,12 +69,16 @@ export const useSaveFileDataOnChain = () => {
       weight,
       typ,
       cid,
+      from,
+      to,
     }: {
       name: string;
       file_parent_id?: string;
       weight?: number;
       typ?: string;
       cid?: string;
+      from: string;
+      to: string;
     }) => {
       if (!publicKey || !signTransaction) {
         console.log("Wallet not connected");
@@ -77,58 +86,32 @@ export const useSaveFileDataOnChain = () => {
       }
       setIsLoading(true);
       const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-      const payerPrivateKeyString =
-        "55P1Eq6SgmNNtAk2YSgSSmK1tjeE8dqy8z2CjChaEQqrRQGZjrPEZUiu1Gpze48qP7mE1gQo2wzH2RbvmuxhmEa9";
-
-      const payer = Keypair.fromSecretKey(bs58.decode(payerPrivateKeyString));
-      const mintAuthority = payer;
-      console.log({ passed: true, b4: "true" });
-      const mintPublicKey = await createMint(
-        connection,
-        payer,
-        mintAuthority.publicKey,
-        null,
-        9,
-      );
-
-      console.log({ passed: true });
-      const tokenAccount = await getOrCreateAssociatedTokenAccount(
-        connection,
-        payer,
-        mintPublicKey,
-        payer.publicKey,
-      );
-
       const metadata = new TokenMetadata({
         file_id: uuidv4(),
         name: name,
         weight: weight || 0,
         file_parent_id: file_parent_id || "",
         cid: cid || "",
-        typ: typ || "folder",
+        typ: typ || "file",
+        from,
+        to,
       });
 
       const metadataBuffer = Buffer.from(
         serialize(TokenMetadataSchema, metadata),
       );
 
-      const instruction = new TransactionInstruction({
-        keys: [
-          { pubkey: mintPublicKey, isSigner: false, isWritable: true }, // mint_account
-          { pubkey: tokenAccount.address, isSigner: false, isWritable: true }, // token_account
-          {
-            pubkey: mintAuthority.publicKey,
-            isSigner: true,
-            isWritable: false,
-          }, // mint_authority
-          { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-        ],
+      const customInstruction = new TransactionInstruction({
+        keys: [],
         programId: PROGRAM_ID,
         data: metadataBuffer,
       });
 
-      const transaction = new Transaction().add(instruction);
-      transaction.feePayer = payer.publicKey;
+      let transaction = new Transaction().add(customInstruction);
+      transaction.recentBlockhash = (
+        await connection.getRecentBlockhash()
+      ).blockhash;
+      transaction.feePayer = wallet.publicKey;
 
       console.log({ transaction });
       // Assign a recent blockhash to the transaction
@@ -156,12 +139,19 @@ export const useSaveFileDataOnChain = () => {
 };
 const FileUploadButton = ({ folderName }: { folderName: string }) => {
   const { isLoading, mintToken } = useSaveFileDataOnChain();
-
+  const wallet = useWallet();
   return (
     <Button
       size="lg"
       className="text-white"
-      onClick={() => mintToken({ name: folderName })}
+      onClick={() =>
+        mintToken({
+          name: folderName,
+          typ: "folder",
+          from: wallet.publicKey?.toString() || "",
+          to: wallet.publicKey?.toString() || "",
+        })
+      }
       disabled={isLoading}
       loading={isLoading}
     >
