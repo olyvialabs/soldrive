@@ -44,6 +44,7 @@ const useDownloadFiles = (wallet: string, allFiles: FileDetails[]) => {
     );
     if (!foundUser) {
       toast("Data missmatch with solana, trying again will fix the issue:)!", {
+        description: "If it persist, please refresh site",
         position: "top-center",
       });
       return;

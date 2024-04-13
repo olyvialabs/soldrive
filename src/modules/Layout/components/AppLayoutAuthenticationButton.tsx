@@ -6,27 +6,24 @@ import { useAuthStore } from "~/modules/Auth/store/store";
 import useGetAllUserData from "~/modules/Files/hooks/useGetAllUserData";
 
 const SolanaLogFetcher: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isNewUser, setIsNewUser] = useState(false);
   const { changeAuthModalVisibility } = useAuthStore();
   const wallet = useWallet();
   const { loading: usersDataLoading, data: usersData } = useGetAllUserData();
+  console.log({ usersData });
+  console.log({ usersData });
+  console.log({ usersData });
+
+  const foundUser = (usersData || []).find(
+    (item) => item["UserMetadata user_solana"] === wallet.publicKey?.toString(),
+  );
 
   useEffect(() => {
-    if ((usersData || []).length > 0) {
-      const foundUser = usersData!.find(
-        (item) =>
-          item["UserMetadata user_solana"] === wallet.publicKey?.toString(),
-      );
-      if (foundUser) {
-        changeAuthModalVisibility(false);
-      }
-      setIsLoading(false);
-      setIsNewUser(!foundUser);
+    if (foundUser) {
+      changeAuthModalVisibility(false);
     }
-  }, [usersData, wallet]);
+  }, [foundUser]);
 
-  if (isLoading || usersDataLoading || !usersData?.length) {
+  if (usersDataLoading || !usersData?.length || !foundUser) {
     return (
       <div className="flex items-center space-x-4">
         <Skeleton className="h-12 w-12 rounded-full" />
@@ -40,7 +37,9 @@ const SolanaLogFetcher: React.FC = () => {
 
   return (
     <div>
-      <div>{isNewUser && <CreateUserButton />} </div>
+      <div>
+        <CreateUserButton />
+      </div>
     </div>
   );
 };
