@@ -12,6 +12,7 @@ import { FileIcon } from "@radix-ui/react-icons";
 import { useSaveFileDataOnChain } from "./FileUploadButton";
 import { AllSolanaContent } from "~/modules/Auth/components/WalletConnectionButton";
 import { toast } from "sonner";
+import { useRouter } from "next/router";
 
 const getColor = (props) => {
   if (props.isDragAccept) {
@@ -124,6 +125,8 @@ const useEncryptionFileEncryption = (usersData: Array<any>) => {
       to: targetWallet!,
     });
 
+    // temp solution to showcase all files!
+    window.location.reload();
     return;
     // Example decryption (normally you would do this where you need the decrypted data)
     let letNewChunks = [];
