@@ -78,7 +78,13 @@ const FilePreviewInnerContentItem = ({
   item,
   allFiles,
 }: FilePreviewContentItemProps) => {
-  const { controls, selectFile, fileSelection } = useFilesStore();
+  const {
+    controls,
+    selectFile,
+    fileSelection,
+    setCurrentFolderInformation,
+    clearFileSelection,
+  } = useFilesStore();
   const contextMenuRef = useRef(null);
 
   const handleClickMenuOptions = () => {
@@ -95,6 +101,12 @@ const FilePreviewInnerContentItem = ({
   const handleClickItem = (e: MouseEvent<HTMLDivElement, MouseEvent>) => {
     // important so it correctly fires the clearFileSelection on parent
     e.stopPropagation();
+    const isDobleClick = e.detail === 2;
+    if (isDobleClick && item.typ === "folder") {
+      setCurrentFolderInformation(item);
+      clearFileSelection();
+      return;
+    }
     const isSelectedWithMultipleSelection = e.altKey;
     selectFile(item.file_id, isSelectedWithMultipleSelection);
   };

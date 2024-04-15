@@ -14,11 +14,11 @@ import {
 } from "~/components/ui/table";
 import { AppLeftSidenav } from "~/modules/Layout/components/AppLeftSidenav";
 import sidenavItems from "~/modules/Layout/data/sidenav";
-import { FileIcon, FilePlusIcon } from "@radix-ui/react-icons";
+import { ArrowLeftIcon, FileIcon, FilePlusIcon } from "@radix-ui/react-icons";
 import { OnboardingDialog } from "~/modules/Layout/components/OnboardingDialog";
 import { PreviewFileDetails } from "../../FileDetails/components/PreviewFileDetails";
 import { useAuthStore } from "~/modules/Auth/store/store";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import useGlobalDragAndDrop from "../../FileUpload/hooks/useGlobalDragAndDrop";
 import { GlobalDnD } from "../../FileUpload/components/GlobalDnD";
 import useTokenBalances from "../hooks/useGetAllFilesData";
@@ -49,8 +49,23 @@ const FileDisplayContentByView = ({
   balances: FileDetails[];
   balancesLoading: boolean;
 }) => {
-  const { controls } = useFilesStore();
-  console.log({ balances });
+  const { controls, currentFolderInformation } = useFilesStore();
+
+  const filteredFiles = useMemo(() => {
+    if (!currentFolderInformation.fileData?.file_id) {
+      return balances.filter(
+        (item) =>
+          item.file_parent_id === "" ||
+          item.file_parent_id === null ||
+          item.file_parent_id === undefined,
+      );
+    }
+
+    return balances.filter(
+      (item) =>
+        item.file_parent_id === currentFolderInformation.fileData?.file_id,
+    );
+  }, [balances, currentFolderInformation.fileData?.file_id]);
 
   if (balancesLoading) {
     return (
@@ -64,7 +79,7 @@ const FileDisplayContentByView = ({
     );
   }
 
-  if (!balances.length) {
+  if (!filteredFiles.length) {
     return (
       <EmptyPlaceholder>
         <EmptyPlaceholder.Icon>
@@ -79,6 +94,7 @@ const FileDisplayContentByView = ({
       </EmptyPlaceholder>
     );
   }
+
   if (controls.view === "list") {
     return (
       <div className="mt-4 w-full">
@@ -92,7 +108,7 @@ const FileDisplayContentByView = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {balances.map((item) => (
+            {filteredFiles.map((item) => (
               <FilePreviewContentItem
                 key={`file-item-${item.file_id}`}
                 item={item}
@@ -107,7 +123,7 @@ const FileDisplayContentByView = ({
 
   return (
     <div className="mt-4 grid grid-cols-1 gap-4 px-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-      {balances.map((item) => (
+      {filteredFiles.map((item) => (
         <FilePreviewContentItem
           key={`file-item-${item.file_id}`}
           item={item}
@@ -125,6 +141,8 @@ const FileDisplayContent = () => {
     clearFileSelection,
     setPreviewFileDetails,
     changeForcedUploadFiles,
+    currentFolderInformation,
+    setCurrentFolderInformation,
   } = useFilesStore();
   const { shouldShowAuthModal, changeAuthModalVisibility } = useAuthStore();
   const { isDragging } = useGlobalDragAndDrop();
@@ -156,6 +174,33 @@ const FileDisplayContent = () => {
             className="mx-auto flex w-[1280px] max-w-full flex-1"
           >
             <div className="h-full w-full">
+              {currentFolderInformation.fileData?.file_id && (
+                <div className="block w-full">
+                  <div className="flex w-full flex-col items-start">
+                    <Button
+                      className="p-0 text-white"
+                      variant="link"
+                      onClick={() => {
+                        const parentFile = balances.find(
+                          (item) =>
+                            item.file_id ===
+                            currentFolderInformation.fileData?.file_parent_id,
+                        );
+                        if (!parentFile) {
+                          setCurrentFolderInformation(null);
+                          return;
+                        }
+                        setCurrentFolderInformation(parentFile);
+                      }}
+                    >
+                      <ArrowLeftIcon className="mr-2" /> Back
+                    </Button>
+                    <span className="text-lg">
+                      {currentFolderInformation.fileData?.name}
+                    </span>
+                  </div>
+                </div>
+              )}
               {isDragging || forcedUploadFiles ? (
                 <>
                   <GlobalDnD />
@@ -165,7 +210,7 @@ const FileDisplayContent = () => {
                         changeForcedUploadFiles(false);
                       }}
                       variant="link"
-                      className="px-4"
+                      className="ml-4 px-4"
                       size="lg"
                     >
                       Close file uploader

@@ -20,9 +20,14 @@ interface PreviewFileDetails {
   fileContent: FileDetails | null;
 }
 
+interface CurrentFolder {
+  fileData: FileDetails | null;
+}
+
 export interface FilesStore {
   controls: FilesStoreControls;
   fileSelection: FilesSelection;
+  currentFolderInformation: CurrentFolder;
   forcedUploadFiles: boolean;
   previewFileDetails: PreviewFileDetails;
   changeDisplayControls: (newControls: Partial<FilesStoreControls>) => void;
@@ -32,6 +37,7 @@ export interface FilesStore {
   ) => void;
   clearFileSelection: () => void;
   changeForcedUploadFiles: (newValue: boolean) => void;
+  setCurrentFolderInformation: (fileData: FileDetails | null) => void;
 }
 
 const initialState = {
@@ -42,6 +48,9 @@ const initialState = {
   isFileDetailsVisible: false,
   fileSelection: {
     filesSelected: [],
+  },
+  currentFolderInformation: {
+    fileData: null,
   },
   previewFileDetails: {
     isVisible: false,
@@ -88,6 +97,9 @@ const useFilesStore = create<FilesStore>()(
             },
           };
         });
+      },
+      setCurrentFolderInformation: (fileData: FileDetails | null) => {
+        set({ currentFolderInformation: { fileData } });
       },
       setPreviewFileDetails: (
         newPreviewFileDetails: Partial<PreviewFileDetails>,

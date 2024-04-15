@@ -20,6 +20,7 @@ import bs58 from "bs58";
 import { v4 as uuidv4 } from "uuid";
 import { Button } from "~/components/ui/button";
 import { env } from "~/env";
+import { useFilesStore } from "../../store/store";
 
 const PROGRAM_ID = new PublicKey(
   env.NEXT_PUBLIC_FILES_RELATIONSHIP_CONTRACT_ADDRESS,
@@ -59,6 +60,7 @@ const TokenMetadataSchema = new Map([
 
 export const useSaveFileDataOnChain = () => {
   const { publicKey, signTransaction } = useWallet();
+  const { currentFolderInformation } = useFilesStore();
   const [isLoading, setIsLoading] = useState(false);
   const wallet = useWallet();
 
@@ -90,7 +92,8 @@ export const useSaveFileDataOnChain = () => {
         file_id: uuidv4(),
         name: name,
         weight: weight || 0,
-        file_parent_id: file_parent_id || "",
+        file_parent_id:
+          file_parent_id || currentFolderInformation.fileData?.file_id || "",
         cid: cid || "",
         typ: typ || "file",
         from,
