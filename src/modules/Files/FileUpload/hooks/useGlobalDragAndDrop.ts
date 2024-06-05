@@ -21,7 +21,6 @@ const useGlobalDragAndDrop = () => {
     const handleDragStart = () => {
       isFileFromOS.current = false;
       hasDraggedFileFromBrowserOutsideOfWindow.current = false;
-      console.log("Drag started from browser");
     };
 
     const handleDragOver = (e: DragEvent) => {
@@ -33,14 +32,11 @@ const useGlobalDragAndDrop = () => {
         hasDraggedFileFromBrowserOutsideOfWindow.current &&
         document.hasFocus()
       ) {
-        console.log("Dragged file back into view from browser");
       } else if (isFileFromOS.current) {
-        console.log("Dragging from OS");
         hasDraggedFileFromBrowserOutsideOfWindow.current = false;
 
         if (!isDragging) setDragging(true);
       } else {
-        console.log("Dragging from browser");
       }
     };
 
@@ -50,8 +46,6 @@ const useGlobalDragAndDrop = () => {
           isFileFromOS.current &&
           !hasDraggedFileFromBrowserOutsideOfWindow.current
         ) {
-          console.log("Left view from OS");
-
           if (isDragging) setDragging(false);
         } else {
           // Left view from browser. If a user drops an item here, we won't be able to
@@ -61,7 +55,6 @@ const useGlobalDragAndDrop = () => {
           // We will set a flag to signal that the file has been dragged outside of
           // the window so our dragover handler can compare this with document.hasFocus()
           // to check if the user has tabbed out to drag another file from the OS.
-          console.log("Left view from browser");
           hasDraggedFileFromBrowserOutsideOfWindow.current = true;
           // Reset isFileFromOS flag
           isFileFromOS.current = true;
@@ -72,7 +65,6 @@ const useGlobalDragAndDrop = () => {
     const handleDrop = (e: DragEvent) => {
       // Again, e.preventDefault needs to be here and on dragover event
       // to prevent the file from opening in the browser.
-      console.log("drop");
       e.preventDefault();
       // Reset isFileFromOS flag
       isFileFromOS.current = true;

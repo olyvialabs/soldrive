@@ -13,7 +13,7 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from "~/components/ui/menubar";
-import { useFilesStore } from "../../store/store";
+import { useFilesStore } from "../../../Store/FileDisplayLayout/store";
 import {
   CopyIcon,
   Cross1Icon,
@@ -29,21 +29,12 @@ import { FileDetails } from "../types";
 import { useWallet } from "@solana/wallet-adapter-react";
 import useDownloadFiles from "../hooks/useDownloadFiles";
 
-export function FileSelectionControls({
-  balances,
-  balancesLoading,
-}: {
-  balances: FileDetails[];
-  balancesLoading: boolean;
-}) {
+export function FileSelectionControls() {
   const { fileSelection, clearFileSelection, setPreviewFileDetails } =
     useFilesStore();
 
   const wallet = useWallet();
-  const { downloadFiles } = useDownloadFiles(
-    wallet.publicKey?.toString() || "",
-    balances,
-  );
+  const { downloadFiles } = useDownloadFiles();
   const multipleFilesSelected = fileSelection.filesSelected.length > 1;
   return (
     <Menubar onClick={(e) => e.stopPropagation()}>
@@ -103,11 +94,6 @@ export function FileSelectionControls({
           <MenubarItem
             disabled={multipleFilesSelected}
             onClick={() => {
-              console.log({
-                theid: fileSelection.filesSelected[0],
-                fileSelection,
-              });
-              console.log({ theid: fileSelection.filesSelected[0] });
               // if this enters, it means it's not disabled, which meant's
               // there's only one file selected
               setPreviewFileDetails({

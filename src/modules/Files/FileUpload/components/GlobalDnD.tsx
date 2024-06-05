@@ -1,7 +1,6 @@
 import React from "react";
 import { useDropzone } from "react-dropzone";
 import styled from "styled-components";
-import useGetAllUserData from "../../hooks/useGetAllUserData";
 import { useWallet } from "@solana/wallet-adapter-react";
 import ipfsClient from "./utils/IpfsConfiguration";
 import { SIGN_MESSAGE } from "~/modules/Layout/components/CreateNewUser";
@@ -13,6 +12,11 @@ import { useSaveFileDataOnChain } from "./FileUploadButton";
 import { AllSolanaContent } from "~/modules/Auth/components/WalletConnectionButton";
 import { toast } from "sonner";
 import { useRouter } from "next/router";
+import { useAuthStore } from "~/modules/Store/Auth/store";
+import { useUserFilesStore } from "~/modules/Store/UserFiles/store";
+import useGetAllFilesByWalletIndexer from "../../FileDisplayer/hooks/useGetAllFilesByWalletIndexer";
+import useContractIndexer from "../../hooks/useContractIndexer";
+import { useFilesStore } from "~/modules/Store/FileDisplayLayout/store";
 
 const getColor = (props) => {
   if (props.isDragAccept) {
@@ -29,10 +33,14 @@ const getColor = (props) => {
 
 const Container = styled.div``;
 
-const useEncryptionFileEncryption = (usersData: Array<any>) => {
+const useEncryptionFileEncryption = () => {
   const wallet = useWallet();
-
+  const { currentFolderInformation } = useFilesStore();
+  const { userInformation } = useAuthStore();
+  const { getFilesByWallet } = useGetAllFilesByWalletIndexer();
+  const { manualSyncFileCreation } = useContractIndexer();
   const { mintToken } = useSaveFileDataOnChain();
+  const { changeForcedUploadFiles } = useFilesStore();
   const getUniqueCredentials = async () => {
     const provider = window.solana;
     if (!provider) {
@@ -59,35 +67,15 @@ const useEncryptionFileEncryption = (usersData: Array<any>) => {
     //wallet.publicKey?.toString()
     const targetWallet = wallet.publicKey?.toString();
 
-    console.log({ targetWallet, usersData });
-    console.log({ targetWallet, usersData });
-    console.log({ targetWallet, usersData });
-    const foundUser = (usersData || []).find(
-      (item) => item["UserMetadata user_solana"] === targetWallet,
-    );
-
-    console.log({ usersData });
-    console.log({ usersData });
-    console.log({ usersData });
-
-    if (!foundUser) {
-      toast("Data missmatch with solana, trying again will fix the issue:)!", {
-        description: "Please just retry, that'll fix the issue",
-        position: "top-center",
-      });
-      return;
-    }
-
-    const userDid = foundUser.did_public_address;
+    const userDid = userInformation?.did_public_address!;
     const chunks = [];
     for await (const chunk of ipfsClient.cat(userDid)) {
       chunks.push(chunk);
     }
     const walletIpfsFileContent = Buffer.concat(chunks);
     const fileContentJson = JSON.parse(walletIpfsFileContent.toString());
-    console.log(fileContentJson);
 
-    const { privateKeyString } = await getUniqueCredentials();
+    const { privateKeyString } = (await getUniqueCredentials()) || {};
     // Decode the private key string
     const privateKey = bs58.decode(privateKeyString);
     // Use the first 32 bytes of the private key as the shared secret
@@ -113,20 +101,22 @@ const useEncryptionFileEncryption = (usersData: Array<any>) => {
 
     // Upload the combined encrypted data to IPFS
     const added = await ipfsClient.add(combined);
-    console.log("Encrypted file added to IPFS with CID:", added.cid.toString());
 
-    await mintToken({
+    const newToken = {
       name: fileName,
       cid: added.cid.toString(),
-      file_parent_id: "",
+      file_parent_id: currentFolderInformation.fileData?.id || "",
       typ: "file",
       weight: size,
       from: targetWallet!,
       to: targetWallet!,
-    });
-
-    // temp solution to showcase all files!
-    window.location.reload();
+    };
+    await mintToken(newToken);
+    toast(`New file ${fileName} created.`);
+    await manualSyncFileCreation(newToken);
+    changeForcedUploadFiles(false);
+    // on create new file, reload all data
+    getFilesByWallet(targetWallet!);
     return;
     // Example decryption (normally you would do this where you need the decrypted data)
     let letNewChunks = [];
@@ -147,14 +137,12 @@ const useEncryptionFileEncryption = (usersData: Array<any>) => {
 
     const decoder = new TextDecoder();
     const decryptedString = decoder.decode(decryptedContent);
-    console.log("Decrypted content:", decryptedString);
   };
   return { encryptFile };
 };
 
 function GlobalDnD() {
-  const { data: usersData, loading: userDataLoading } = useGetAllUserData();
-  const { encryptFile } = useEncryptionFileEncryption(usersData);
+  const { encryptFile } = useEncryptionFileEncryption();
 
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } =
     useDropzone({
@@ -163,9 +151,6 @@ function GlobalDnD() {
         reader.onload = async function (e) {
           const contentAsArrayBuffer = e.target?.result;
           if (contentAsArrayBuffer) {
-            console.log({ contentAsArrayBuffer });
-            console.log({ contentAsArrayBuffer });
-            console.log({ contentAsArrayBuffer });
             const contentAsUint8Array =
               typeof contentAsArrayBuffer === "string"
                 ? contentAsArrayBuffer
@@ -181,28 +166,23 @@ function GlobalDnD() {
       },
     });
 
-  if (userDataLoading) {
-    return <div>Cargåndo</div>;
-  }
-
+  // <AllSolanaContent>
   return (
-    <AllSolanaContent>
-      <div className="container">
-        <Container
-          {...getRootProps({ isFocused, isDragAccept, isDragReject })}
-          className="relative flex min-h-[40vh] w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-100 border-gray-200 p-12 text-center dark:border-gray-800"
-          style={{
-            backgroundImage: "radial-gradient(var(--gradient-9))",
-          }}
-        >
-          <input {...getInputProps()} />
-          <FileIcon className="h-8 w-8" />{" "}
-          <span className="text-sm font-semibold tracking-wide">
-            Drag and drop your files here
-          </span>
-        </Container>
-      </div>
-    </AllSolanaContent>
+    <div className="container">
+      <Container
+        {...getRootProps({ isFocused, isDragAccept, isDragReject })}
+        className="relative flex min-h-[40vh] w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-100 border-gray-200 p-12 text-center dark:border-gray-800"
+        style={{
+          backgroundImage: "radial-gradient(var(--gradient-9))",
+        }}
+      >
+        <input {...getInputProps()} />
+        <FileIcon className="h-8 w-8" />{" "}
+        <span className="text-sm font-semibold tracking-wide">
+          Drag and drop your files here
+        </span>
+      </Container>
+    </div>
   );
 }
 

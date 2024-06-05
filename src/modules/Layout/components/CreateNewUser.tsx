@@ -17,8 +17,9 @@ import crypto from "crypto";
 import nacl from "tweetnacl";
 import { Button } from "~/components/ui/button";
 import { AllSolanaContent } from "~/modules/Auth/components/WalletConnectionButton";
-import { useAuthStore } from "~/modules/Auth/store/store";
+import { useAuthStore } from "~/modules/Store/Auth/store";
 import ipfs from "~/modules/Files/FileUpload/components/utils/IpfsConfiguration";
+import useContractIndexer from "~/modules/Files/hooks/useContractIndexer";
 
 const PROGRAM_ID = new PublicKey(env.NEXT_PUBLIC_USERS_CONTRACT_ADDRESS);
 
@@ -58,7 +59,8 @@ const CreateUserButton: React.FC = () => {
   const wallet = useWallet();
   const [username, setUsername] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { changeAuthModalVisibility } = useAuthStore();
+  const { changeAuthModalVisibility, setUserInformationData } = useAuthStore();
+  const { manualSyncUserCreation } = useContractIndexer();
 
   // const formatKeyToByte32Key = (theSignedMsg: string) => {
   //   const hash = crypto.createHash("sha256");
@@ -95,7 +97,7 @@ const CreateUserButton: React.FC = () => {
     const { publicKeyString } = await generateUniqueCredentials(provider);
     const newDidId = crypto.createHash("sha256").digest().toString();
     const didDocument = {
-      did: `did:filesharing:${newDidId}`,
+      did: `did:v1:filesharing:${newDidId}`,
       username: username,
       walletPublicKey: walletPublicKey,
       didPublicKey: publicKeyString,
@@ -105,7 +107,6 @@ const CreateUserButton: React.FC = () => {
   };
 
   const createUser = async () => {
-    console.log(wallet);
     const provider = window.solana;
     if (!provider) {
       alert("solana is not found.");
@@ -131,10 +132,11 @@ const CreateUserButton: React.FC = () => {
       return alert("there was an error!");
     }
 
-    const userMetadata = new UserMetadata({
+    const userData = {
       user_solana: walletPublicKey.toString(),
       did_public_address: result?.cid!,
-    });
+    };
+    const userMetadata = new UserMetadata(userData);
 
     const userMetadataBuffer = Buffer.from(
       serialize(UserMetadataSchema, userMetadata),
@@ -153,8 +155,6 @@ const CreateUserButton: React.FC = () => {
     transaction.feePayer = wallet.publicKey;
 
     try {
-      console.log("Signing and sending transaction...");
-
       // The wallet's signAndSendTransaction method is used here
       let signedTransaction = await wallet.signTransaction(transaction);
       let signature = await connection.sendRawTransaction(
@@ -162,10 +162,9 @@ const CreateUserButton: React.FC = () => {
         { skipPreflight: false, preflightCommitment: "confirmed" },
       );
 
-      console.log("Waiting for confirmation...");
       await connection.confirmTransaction(signature, "confirmed");
-
-      console.log("Transaction confirmed with signature:", signature);
+      await manualSyncUserCreation(userData);
+      setUserInformationData(userData);
     } catch (error) {
       console.error("Transaction failed", error);
     } finally {
@@ -174,8 +173,9 @@ const CreateUserButton: React.FC = () => {
     }
   };
 
+  // <AllSolanaContent>
   return (
-    <AllSolanaContent>
+    <>
       <Label>Claim your username :</Label>
       <Input onChange={(e) => setUsername(e.target.value)} value={username} />
       <Button
@@ -185,7 +185,7 @@ const CreateUserButton: React.FC = () => {
       >
         Create User
       </Button>
-    </AllSolanaContent>
+    </>
   );
 };
 

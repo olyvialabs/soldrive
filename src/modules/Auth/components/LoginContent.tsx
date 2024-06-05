@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { TimerIcon } from "@radix-ui/react-icons";
 import { toast } from "sonner";
-import { useAuthStore } from "../store/store";
+import { useAuthStore } from "../../Store/Auth/store";
 
 const ProcessLoginToken = ({ token }: { token: string }) => {
   const [loading, setLoading] = useState(true);

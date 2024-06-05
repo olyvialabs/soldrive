@@ -8,32 +8,43 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { NewFolderDialog } from "../../FileUpload/components/NewFolderDialog";
-import { useFilesStore } from "../../store/store";
+import { useFilesStore } from "../../../Store/FileDisplayLayout/store";
 
 export function AddNewFileButton() {
-  const [open, setOpen] = React.useState(false);
+  const [popoverIsOpened, setPopoverIsOpened] = React.useState(false);
+  const [newFolderDialogIsOpened, setNewFolderDialogIsOpened] =
+    React.useState(false);
   const { changeForcedUploadFiles } = useFilesStore();
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={popoverIsOpened} onOpenChange={setPopoverIsOpened}>
       <PopoverTrigger asChild>
         <Button
           className="ml-2 text-white"
           size="lg"
           role="combobox"
-          aria-expanded={open}
+          aria-expanded={popoverIsOpened}
         >
           <FilePlusIcon className="mr-2" />
           Add
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
-        <NewFolderDialog>
+        <NewFolderDialog
+          newFolderDialogIsOpened={newFolderDialogIsOpened}
+          onClose={() => {
+            setNewFolderDialogIsOpened(false);
+          }}
+          onComplete={() => {
+            setNewFolderDialogIsOpened(false);
+            setPopoverIsOpened(false);
+          }}
+        >
           <Button
             variant="outline"
             className="w-full"
             onClick={() => {
-              //setOpen(false);
+              setNewFolderDialogIsOpened(true);
             }}
           >
             <FilePlusIcon className="mr-1" /> Create Folder
@@ -43,7 +54,7 @@ export function AddNewFileButton() {
           variant="outline"
           className="w-full"
           onClick={() => {
-            setOpen(false);
+            setPopoverIsOpened(false);
             changeForcedUploadFiles(true);
           }}
         >

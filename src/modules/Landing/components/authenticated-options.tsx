@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { WalletConnectionButton } from "~/modules/Auth/components/WalletConnectionButton";
-import { useAuthStore } from "~/modules/Auth/store/store";
+import { useAuthStore } from "~/modules/Store/Auth/store";
 
 export function AuthenticatedOptions({
   mobileDisplay,

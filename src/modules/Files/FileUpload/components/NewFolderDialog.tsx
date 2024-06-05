@@ -12,12 +12,27 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import FileUploadButton from "./FileUploadButton";
 
-export function NewFolderDialog({ children }: { children: React.ReactNode }) {
+export function NewFolderDialog({
+  children,
+  newFolderDialogIsOpened,
+  onClose,
+  onComplete,
+}: {
+  children: React.ReactNode;
+  newFolderDialogIsOpened: boolean;
+  onClose: () => void;
+  onComplete: () => void;
+}) {
   const [folderName, setFolderName] = useState("");
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog
+      open={newFolderDialogIsOpened}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      {children}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>New folder</DialogTitle>
@@ -38,7 +53,7 @@ export function NewFolderDialog({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <DialogFooter>
-          <FileUploadButton folderName={folderName} />
+          <FileUploadButton folderName={folderName} onComplete={onComplete} />
         </DialogFooter>
       </DialogContent>
     </Dialog>

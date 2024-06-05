@@ -11,22 +11,19 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "~/components/ui/drawer";
-import { useFilesStore } from "../../store/store";
+import { useFilesStore } from "../../../Store/FileDisplayLayout/store";
 import { FileDetails } from "../../FileDisplayer/types";
+import { useUserFilesStore } from "~/modules/Store/UserFiles/store";
 
 const isMobile = () => window.innerWidth <= 768;
 
-const FileDetailsInnerContent = ({ balances }: { balances: FileDetails[] }) => {
+const FileDetailsInnerContent = () => {
   const { previewFileDetails } = useFilesStore();
-  const fileContent = (balances || []).find(
-    (item) => item.file_id === previewFileDetails.fileId,
+  const { files: filesData } = useUserFilesStore();
+  const fileContent = (filesData || []).find(
+    (item) => item.id === previewFileDetails.fileId,
   );
 
-  console.log({ fileContent, previewFileDetails });
-  console.log({ fileContent, previewFileDetails });
-  console.log({ fileContent, previewFileDetails });
-  console.log({ fileContent, previewFileDetails });
-  console.log({ fileContent, previewFileDetails, balances });
   if (!fileContent) {
     return null;
   }
@@ -81,7 +78,7 @@ const FileDetailsInnerContent = ({ balances }: { balances: FileDetails[] }) => {
   );
 };
 
-export function PreviewFileDetails({ balances }: { balances: FileDetails[] }) {
+export function PreviewFileDetails() {
   const { previewFileDetails } = useFilesStore();
   const { setPreviewFileDetails } = useFilesStore();
   if (!previewFileDetails.isVisible) {
@@ -107,7 +104,7 @@ export function PreviewFileDetails({ balances }: { balances: FileDetails[] }) {
             </Button>
           </div>
         </div>
-        <FileDetailsInnerContent balances={balances} />
+        <FileDetailsInnerContent />
       </div>
     );
   }
@@ -119,7 +116,7 @@ export function PreviewFileDetails({ balances }: { balances: FileDetails[] }) {
           <DrawerTitle>Details</DrawerTitle>
         </DrawerHeader>
         <div>
-          <FileDetailsInnerContent balances={balances} />
+          <FileDetailsInnerContent />
         </div>
         <DrawerFooter>
           <DrawerClose asChild>

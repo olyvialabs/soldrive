@@ -64,8 +64,10 @@ const WalletConnectionButton = ({
 }: {
   type: "both" | "connect" | "disconnect";
 }) => {
+  // <AllSolanaContent>
+
   return (
-    <AllSolanaContent>
+    <>
       {["both", "connect"].includes(type) && (
         <WalletMultiButtonDynamic
           className={cn("text-white", buttonVariants({ variant: "default" }))}
@@ -76,7 +78,7 @@ const WalletConnectionButton = ({
           className={cn(buttonVariants({ variant: "outline" }))}
         />
       )}
-    </AllSolanaContent>
+    </>
   );
 };
 

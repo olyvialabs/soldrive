@@ -50,7 +50,6 @@ const DidGenerator = ({
             encodedMessage,
             "utf8",
           );
-          console.log("Signature:", signedMessage.signature);
 
           // Fake username for demonstration purposes
           const username = "THE_TEST_USERNAME";
@@ -66,9 +65,8 @@ const DidGenerator = ({
           const { cid } = await ipfs.add(JSON.stringify(didDocument));
           setDidDocumentCid(cid.toString());
           onChangeDid(cid.toString());
-          console.log("DID Document stored on IPFS with CID:", cid.toString());
         } else {
-          console.log("Phantom wallet not found!");
+          alert("Phantom wallet not found!");
         }
       }
     } catch (error) {
@@ -100,10 +98,7 @@ const FileTestContent = () => {
   //   const seed = new Uint8Array(seedBuffer?.buffer!);
   //   const provider = new Ed25519Provider(seed);
   //   const did = new DID({ provider, resolver: KeyResolver.getResolver() });
-  //   //console.log({ did, didd: did.id });
-  //   console.log({ did });
   //   await did.authenticate();
-  //   console.log({ did, didd: did.id });
   //   setUserDID(did.id);
 
   // };
@@ -120,7 +115,6 @@ const FileTestContent = () => {
     const encodedMessage = new TextEncoder().encode(message);
     const signedMessage = await provider.signMessage(encodedMessage, "utf8");
     const theSignedMsg = new TextDecoder().decode(signedMessage.signature);
-    console.log({ theSignedMsg });
     hash.update(theSignedMsg);
     const hashedMessage = hash.digest();
 
@@ -134,7 +128,6 @@ const FileTestContent = () => {
   }
 
   const handleNewFileUpload = async (data) => {
-    console.log({ data });
     return;
     // Important! The key MUST be 32 byte long
     const privateKey = await stringTo32ByteKey();

@@ -1,15 +1,15 @@
 import { persist } from "zustand/middleware";
 import { create } from "zustand";
 
-interface AuthUserType {
-  email: string;
-  token: string;
+export interface UserInformationData {
+  user_solana: string;
+  did_public_address: string;
 }
 
 export interface AuthStore {
-  userInformation: AuthUserType | null;
-  setAuthUserInfo: (user: AuthUserType) => void;
-  clearAuth: () => void;
+  userInformation: UserInformationData | null;
+  setUserInformationData: (user: UserInformationData) => void;
+  clearUserInformation: () => void;
   shouldShowAuthModal: boolean;
   changeAuthModalVisibility: (newValue: boolean) => void;
 }
@@ -23,10 +23,10 @@ const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
       ...initialState,
-      setAuthUserInfo: (user) => {
+      setUserInformationData: (user) => {
         set({ userInformation: user });
       },
-      clearAuth: () => {
+      clearUserInformation: () => {
         set({ userInformation: null });
       },
       changeAuthModalVisibility: (newValue: boolean) => {

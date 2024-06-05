@@ -1,17 +1,10 @@
 import { GridIcon, ListBulletIcon } from "@radix-ui/react-icons";
-import { useFilesStore } from "../../store/store";
+import { useFilesStore } from "../../../Store/FileDisplayLayout/store";
 import { Toggle } from "~/components/ui/toggle";
 import { FileSelectionControls } from "./FileSelectionControls";
-import { GlobalDnD } from "../../FileUpload/components/GlobalDnD";
 import { FileDetails } from "../types";
 
-const FileDisplayView = ({
-  balances,
-  balancesLoading,
-}: {
-  balances: FileDetails[];
-  balancesLoading: boolean;
-}) => {
+const FileDisplayView = () => {
   const { controls, changeDisplayControls } = useFilesStore();
 
   return (
@@ -37,27 +30,16 @@ const FileDisplayView = ({
     </div>
   );
 };
-const FileDisplayControls = ({
-  balances,
-  balancesLoading,
-}: {
-  balances: FileDetails[];
-  balancesLoading: boolean;
-}) => {
+const FileDisplayControls = () => {
   const { fileSelection } = useFilesStore();
   if (fileSelection.filesSelected.length > 0) {
-    return (
-      <FileSelectionControls
-        balances={balances}
-        balancesLoading={balancesLoading}
-      />
-    );
+    return <FileSelectionControls />;
   }
 
   return (
     <div className="mb-4 flex justify-between">
       <div>{/* <GlobalDnD /> */}</div>
-      <FileDisplayView balances={balances} balancesLoading={balancesLoading} />
+      <FileDisplayView />
     </div>
   );
 };

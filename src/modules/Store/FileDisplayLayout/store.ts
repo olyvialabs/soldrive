@@ -1,6 +1,6 @@
 import { persist } from "zustand/middleware";
 import { create } from "zustand";
-import { FileDetails } from "../FileDisplayer/types";
+import { FileDetails } from "../../Files/FileDisplayer/types";
 
 export enum FilesViewType {
   GRID = "grid",
@@ -77,7 +77,6 @@ const useFilesStore = create<FilesStore>()(
           const previousFiles = data.fileSelection.filesSelected;
           let resultFilesSelected = [];
 
-          console.log({ alreadySelected, withMultipleSelection });
           if (withMultipleSelection) {
             if (alreadySelected) {
               resultFilesSelected = previousFiles.filter(
@@ -116,7 +115,7 @@ const useFilesStore = create<FilesStore>()(
       },
     }),
     {
-      name: "FilesStore",
+      name: "FileDisplayLayout",
       getStorage: () => localStorage,
     },
   ),

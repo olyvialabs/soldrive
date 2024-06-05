@@ -1,18 +1,16 @@
 import nacl from "tweetnacl";
 import ipfsClient from "../../FileUpload/components/utils/IpfsConfiguration";
-import useGetAllUserData from "../../hooks/useGetAllUserData";
-import { useFilesStore } from "../../store/store";
-import { FileDetails } from "../types";
-import useTokenBalances from "./useGetAllFilesData";
+import { useFilesStore } from "../../../Store/FileDisplayLayout/store";
 import bs58 from "bs58";
 import { SIGN_MESSAGE } from "~/modules/Layout/components/CreateNewUser";
 import crypto from "crypto";
-import { toast } from "sonner";
+import { useAuthStore } from "~/modules/Store/Auth/store";
+import { useUserFilesStore } from "~/modules/Store/UserFiles/store";
 
-const useDownloadFiles = (wallet: string, allFiles: FileDetails[]) => {
+const useDownloadFiles = () => {
   const { fileSelection } = useFilesStore();
-  const { data: usersData, loading } = useGetAllUserData();
-
+  const { files: allFiles } = useUserFilesStore();
+  const { userInformation } = useAuthStore();
   const getUniqueCredentials = async () => {
     const provider = window.solana;
     if (!provider) {
@@ -37,33 +35,15 @@ const useDownloadFiles = (wallet: string, allFiles: FileDetails[]) => {
   };
 
   const downloadFiles = async () => {
-    console.log({ fileSelection });
-    console.log({ fileSelection });
-    const foundUser = (usersData || []).find(
-      (item) => item["UserMetadata user_solana"] === wallet,
-    );
-    if (!foundUser) {
-      toast("Data missmatch with solana, trying again will fix the issue:)!", {
-        description: "Please just retry, that'll fix the issue",
-        position: "top-center",
-      });
-      return;
-    }
-
-    const userDid = foundUser.did_public_address;
+    const userDid = userInformation?.did_public_address!;
     const chunks = [];
     for await (const chunk of ipfsClient.cat(userDid)) {
       chunks.push(chunk);
     }
     //const walletIpfsFileContent = Buffer.concat(chunks);
     //const fileContentJson = JSON.parse(walletIpfsFileContent.toString());
-    console.log({ fileSelection });
     for (let fileId of fileSelection.filesSelected) {
-      const foundItem = allFiles.find((item) => item.file_id === fileId);
-      console.log(allFiles.find((item) => item.file_id === fileId));
-      console.log(allFiles.find((item) => item.file_id === fileId));
-      console.log(allFiles.find((item) => item.file_id === fileId));
-      console.log(allFiles.find((item) => item.file_id === fileId));
+      const foundItem = allFiles.find((item) => item.id === fileId);
 
       if (!foundItem || foundItem.typ === "folder") {
         continue;

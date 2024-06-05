@@ -10,7 +10,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "~/components/ui/context-menu";
-import { useFilesStore } from "../../store/store";
+import { useFilesStore } from "../../../Store/FileDisplayLayout/store";
 import useDownloadFiles from "../hooks/useDownloadFiles";
 import { useWallet } from "@solana/wallet-adapter-react";
 
@@ -53,11 +53,6 @@ export function FilePreviewItemContextMenu({
         <ContextMenuItem
           inset
           onClick={() => {
-            console.log({
-              theid: fileSelection.filesSelected[0],
-              fileSelection,
-            });
-            console.log({ theid: fileSelection.filesSelected[0] });
             // if this enters, it means it's not disabled, which meant's
             // there's only one file selected
             setPreviewFileDetails({

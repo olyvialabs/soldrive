@@ -1,5 +1,5 @@
 import { MouseEvent, memo, useRef } from "react";
-import { useFilesStore } from "../../store/store";
+import { useFilesStore } from "../../../Store/FileDisplayLayout/store";
 import { FilePreviewItemContextMenu } from "./FilePreviewItemContextMenu";
 import { Button } from "~/components/ui/button";
 import { DotsVerticalIcon } from "@radix-ui/react-icons";
@@ -85,6 +85,7 @@ const FilePreviewInnerContentItem = ({
     setCurrentFolderInformation,
     clearFileSelection,
   } = useFilesStore();
+
   const contextMenuRef = useRef(null);
 
   const handleClickMenuOptions = () => {
@@ -108,10 +109,10 @@ const FilePreviewInnerContentItem = ({
       return;
     }
     const isSelectedWithMultipleSelection = e.altKey;
-    selectFile(item.file_id, isSelectedWithMultipleSelection);
+    selectFile(item.id, isSelectedWithMultipleSelection);
   };
 
-  const isItemSelected = fileSelection.filesSelected.includes(item.file_id);
+  const isItemSelected = fileSelection.filesSelected.includes(item.id);
 
   if (controls.view === "list") {
     return (
@@ -122,22 +123,22 @@ const FilePreviewInnerContentItem = ({
         )}
       >
         <TableCell className="p-0 font-medium">
-          <FileRowContextWrapper file_id={item.file_id} allFiles={allFiles}>
+          <FileRowContextWrapper file_id={item.id} allFiles={allFiles}>
             {item.name}
           </FileRowContextWrapper>
         </TableCell>
         <TableCell className="p-0">
-          <FileRowContextWrapper file_id={item.file_id} allFiles={allFiles}>
+          <FileRowContextWrapper file_id={item.id} allFiles={allFiles}>
             {item.to}
           </FileRowContextWrapper>
         </TableCell>
         <TableCell className="p-0">
-          <FileRowContextWrapper file_id={item.file_id} allFiles={allFiles}>
+          <FileRowContextWrapper file_id={item.id} allFiles={allFiles}>
             {" "}
           </FileRowContextWrapper>
         </TableCell>
         <TableCell className="p-0">
-          <FileRowContextWrapper file_id={item.file_id} allFiles={allFiles}>
+          <FileRowContextWrapper file_id={item.id} allFiles={allFiles}>
             <OptionsMenu onClickMenu={handleClickMenuOptions} />
           </FileRowContextWrapper>
         </TableCell>
@@ -146,7 +147,7 @@ const FilePreviewInnerContentItem = ({
   }
 
   return (
-    <FilePreviewItemContextMenu file_id={item.file_id} allFiles={allFiles}>
+    <FilePreviewItemContextMenu file_id={item.id} allFiles={allFiles}>
       <Card
         ref={contextMenuRef}
         onClick={handleClickItem}
