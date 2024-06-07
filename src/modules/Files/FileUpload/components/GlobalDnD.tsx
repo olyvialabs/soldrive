@@ -33,7 +33,7 @@ const getColor = (props) => {
 
 const Container = styled.div``;
 
-const useEncryptionFileEncryption = () => {
+export const useEncryptionFileEncryption = () => {
   const wallet = useWallet();
   const { currentFolderInformation } = useFilesStore();
   const { userInformation } = useAuthStore();
@@ -63,7 +63,12 @@ const useEncryptionFileEncryption = () => {
     return { publicKeyString, privateKeyString };
   };
 
-  const encryptFile = async (content: any, fileName: string, size: number) => {
+  const encryptFile = async (
+    content: any,
+    fileName: string,
+    size: number,
+    destinationWallet?: string,
+  ) => {
     //wallet.publicKey?.toString()
     const targetWallet = wallet.publicKey?.toString();
 
@@ -109,7 +114,7 @@ const useEncryptionFileEncryption = () => {
       typ: "file",
       weight: size,
       from: targetWallet!,
-      to: targetWallet!,
+      to: destinationWallet || targetWallet!,
     };
     await mintToken(newToken);
     toast(`New file ${fileName} created.`);
@@ -117,7 +122,7 @@ const useEncryptionFileEncryption = () => {
     changeForcedUploadFiles(false);
     // on create new file, reload all data
     getFilesByWallet(targetWallet!);
-    return;
+    return { cid: added.cid.toString() };
     // Example decryption (normally you would do this where you need the decrypted data)
     let letNewChunks = [];
     for await (const chunk of ipfsClient.cat(added.cid.toString())) {

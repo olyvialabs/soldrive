@@ -39,11 +39,11 @@ export const LandingScreen = () => {
               <div className="hidden items-center space-x-1 md:flex">
                 <div>
                   <a
-                    href="#"
+                    href="/"
                     className="flex items-center text-white hover:text-green-500"
                   >
                     <img
-                      src="/assets/images/logosolo.png"
+                      src="/assets/images/LogoSolo.png"
                       alt="SolDrive Logo"
                       className="mr-2 w-12"
                     />
@@ -78,7 +78,7 @@ export const LandingScreen = () => {
             </div>
             <div className="hidden items-center space-x-1 md:flex">
               <a
-                href="/waitlist"
+                href="/app"
                 className="rounded bg-green-500 px-3 py-2 text-white transition duration-300 hover:bg-green-600"
               >
                 Launch App
@@ -118,7 +118,7 @@ export const LandingScreen = () => {
               storage interface for any user. Powered by Solana.
             </p>
             <a
-              href="/waitlist"
+              href="/app"
               className="inline-block rounded-full bg-green-500 px-8 py-3 font-bold uppercase tracking-widest text-white transition duration-200 hover:bg-green-600"
             >
               Try SolDrive

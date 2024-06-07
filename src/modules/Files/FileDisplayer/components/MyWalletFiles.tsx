@@ -1,14 +1,11 @@
 "use client";
 
-import { useFilesStore } from "../../../Store/FileDisplayLayout/store";
 import { AppLeftSidenav } from "~/modules/Layout/components/AppLeftSidenav";
 import sidenavItems from "~/modules/Layout/data/sidenav";
 import { OnboardingDialog } from "~/modules/Layout/components/OnboardingDialog";
 import { PreviewFileDetails } from "../../FileDetails/components/PreviewFileDetails";
 import { useAuthStore } from "~/modules/Store/Auth/store";
 import { useEffect } from "react";
-import useGlobalDragAndDrop from "../../FileUpload/hooks/useGlobalDragAndDrop";
-import useGetAllFilesByWalletIndexer from "../hooks/useGetAllFilesByWalletIndexer";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { AddNewFileButton } from "./AddNewFileButton";
 import { AllSolanaContent } from "~/modules/Auth/components/WalletConnectionButton";
@@ -16,8 +13,11 @@ import { useUserFilesStore } from "~/modules/Store/UserFiles/store";
 import { MyWalletFilesInnerContent } from "./MyWalletFilesInnerContent";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Button } from "~/components/ui/button";
+import SharedFilesWithMe from "../../FilesShared/SharedFilesWithMe";
+import useGetAllFilesByWalletIndexer from "../hooks/useGetAllFilesByWalletIndexer";
+import { useInitializeFilesStores } from "../hooks/useInitializeFilesStores";
 
-const LoadingComponent = () => {
+export const FileListLoadingComponent = () => {
   return (
     <div className="flex h-full w-full flex-col items-center space-x-4 rounded rounded-sm border p-2 md:p-4">
       <Skeleton className="h-4 w-[200px]" />
@@ -57,11 +57,11 @@ const MyWalletFilesLayoutWrapper = () => {
   if (isRetrievingFiles) {
     return (
       <div className="mt-4 grid grid-cols-1 gap-4 px-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        <LoadingComponent />
-        <LoadingComponent />
-        <LoadingComponent />
-        <LoadingComponent />
-        <LoadingComponent />
+        <FileListLoadingComponent />
+        <FileListLoadingComponent />
+        <FileListLoadingComponent />
+        <FileListLoadingComponent />
+        <FileListLoadingComponent />
       </div>
     );
   }
@@ -74,28 +74,22 @@ const MyWalletFilesLayoutWrapper = () => {
   );
 };
 
-const MyWalletFiles = () => {
-  const { setPreviewFileDetails, changeForcedUploadFiles } = useFilesStore();
-  const { shouldShowAuthModal, userInformation, changeAuthModalVisibility } =
-    useAuthStore();
-  const { isDragging } = useGlobalDragAndDrop();
+const MyWalletFiles = ({ forView }: { forView: "shared" | "own" }) => {
+  const { shouldShowAuthModal, userInformation } = useAuthStore();
   const wallet = useWallet();
-  const { clearStore: clearUserFilesStore } = useUserFilesStore();
   const { getFilesByWallet } = useGetAllFilesByWalletIndexer();
-
-  useEffect(() => {
-    changeAuthModalVisibility(true);
-    clearUserFilesStore();
-    setPreviewFileDetails({ fileContent: null, fileId: "", isVisible: false });
-    changeForcedUploadFiles(false);
-  }, []);
+  const { clearAllStores } = useInitializeFilesStores();
 
   useEffect(() => {
     const walletAddress = wallet?.publicKey?.toString();
     if (walletAddress) {
-      getFilesByWallet(walletAddress);
+      clearAllStores();
+      getFilesByWallet(
+        forView === "shared" ? undefined : walletAddress,
+        forView === "shared" ? walletAddress : undefined,
+      );
     }
-  }, [wallet?.publicKey]);
+  }, [wallet?.publicKey, forView]);
 
   return (
     <AllSolanaContent>
@@ -103,9 +97,16 @@ const MyWalletFiles = () => {
         <div className="flex h-full w-full max-w-[1250px] items-stretch gap-2">
           <div className="hidden min-w-[250px] px-1 md:block">
             <AddNewFileButton />
-            <AppLeftSidenav currentSelected="home" links={sidenavItems} />
+            <AppLeftSidenav
+              links={sidenavItems}
+              currentSelected={forView === "shared" ? "shared" : "home"}
+            />
           </div>
-          <MyWalletFilesLayoutWrapper />
+          {forView === "shared" ? (
+            <SharedFilesWithMe />
+          ) : (
+            <MyWalletFilesLayoutWrapper />
+          )}
         </div>
         {(shouldShowAuthModal || !userInformation?.did_public_address) && (
           <OnboardingDialog />

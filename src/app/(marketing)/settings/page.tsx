@@ -1,21 +1,21 @@
 import { Metadata } from "next";
-import { MyWalletFiles } from "~/modules/Files/FileDisplayer/components/MyWalletFiles";
 import AppHeader from "~/modules/Landing/components/app-header";
 import FooterContent from "~/modules/Landing/components/footer-content";
+import SettingsContent from "~/modules/User/components/SettingsContent";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-  title: "App Page | Soldrive",
-  description: "App Page",
+  title: "Settings | Soldrive",
+  description: "Settings Page",
 };
 
-export default function AppPage() {
+export default function SettingsPage() {
   return (
     <>
       <AppHeader />
-      <MyWalletFiles forView="own" />
+      <SettingsContent />
       <FooterContent />
     </>
   );

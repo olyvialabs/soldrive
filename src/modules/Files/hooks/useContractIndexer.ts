@@ -1,6 +1,7 @@
 import { UserInformationData } from "~/modules/Store/Auth/store";
 import getUserByWalletQuery from "../FileUpload/query/getUserByWalletQuery";
 import { FetchFilesResponse } from "../FileDisplayer/types";
+import getUserSubscriptionByWalletQuery from "../FileUpload/query/getUserSubscriptionByWalletQuery";
 
 const indexerUrl = process.env.NEXT_PUBLIC_INDEXER_SERVICE_URL;
 const useContractIndexer = () => {
@@ -37,8 +38,7 @@ const useContractIndexer = () => {
       }
 
       const responseBody = await response.json();
-      console.log(responseBody);
-      console.log("aaaah", responseBody);
+
       if (responseBody.errors) {
         return {
           success: false,
@@ -58,16 +58,67 @@ const useContractIndexer = () => {
     }
   };
 
+  const getUserSubscriptionByWallet = async ({
+    walletAddress,
+  }: {
+    walletAddress: string;
+  }): Promise<{
+    success: boolean;
+    error?: string;
+    data?: { id: string; timestamp: number };
+  }> => {
+    try {
+      const response = await fetch(`${indexerUrl}/graphql`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: getUserSubscriptionByWalletQuery(walletAddress),
+        }),
+        cache: "no-cache",
+      });
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: `Network response was not ok: ${response.statusText}`,
+        };
+      }
+
+      const responseBody = await response.json();
+      if (responseBody.errors) {
+        return {
+          success: false,
+          error: `GraphQL error: ${responseBody.errors.map((e) => e.message).join(", ")}`,
+        };
+      }
+
+      return {
+        success: true,
+        data: responseBody.data.getUserSubscriptionByWallet,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Error fetching user: ${(error as any)?.message || ""}`,
+      };
+    }
+  };
+
   async function fetchFilesFromWallet(
-    from: string,
+    from?: string,
+    to?: string,
   ): Promise<FetchFilesResponse> {
     const query = `
         {
-            getFilesByFromAndTo(from: "${from}") {
+            getFilesByFromAndTo(from: "${from || ""}", to: "${to || ""}") {
                 id
                 slot
                 timestamp
                 file_id
+                from
+                to
                 name
                 weight
                 file_parent_id
@@ -121,6 +172,7 @@ const useContractIndexer = () => {
       console.log("Loading complete");
     }
   }
+
   async function manualSyncFileCreation(fileData: {
     name?: string;
     weight?: number;
@@ -236,6 +288,7 @@ const useContractIndexer = () => {
     fetchFilesFromWallet,
     manualSyncFileCreation,
     manualSyncUserCreation,
+    getUserSubscriptionByWallet,
   };
 };
 

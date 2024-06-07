@@ -1,8 +1,10 @@
 import {
+  DotFilledIcon,
   GearIcon,
   GroupIcon,
   HomeIcon,
   PersonIcon,
+  Share2Icon,
   TimerIcon,
   TrashIcon,
 } from "@radix-ui/react-icons";
@@ -13,12 +15,21 @@ const sidenavItems = [
     icon: HomeIcon,
     variant: "default",
     key: "home",
+    url: "/app",
   },
   {
-    title: "Profile",
+    title: "Shared",
     icon: PersonIcon,
     variant: "default",
-    key: "profile",
+    key: "shared",
+    url: "/shared",
+  },
+  {
+    title: "Transfer",
+    icon: Share2Icon,
+    variant: "default",
+    key: "transfer",
+    url: "/transfer",
   },
   //   {
   //     title: "Favorites",
@@ -52,6 +63,7 @@ const sidenavItems = [
     icon: GearIcon,
     variant: "default",
     key: "settings",
+    url: "/settings",
   },
   // {
   //   title: "Trash",

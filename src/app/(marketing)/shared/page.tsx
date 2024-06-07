@@ -7,15 +7,15 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-  title: "App Page | Soldrive",
-  description: "App Page",
+  title: "Shared | Soldrive",
+  description: "App Shared Page",
 };
 
-export default function AppPage() {
+export default function AppSharedPage() {
   return (
     <>
       <AppHeader />
-      <MyWalletFiles forView="own" />
+      <MyWalletFiles forView="shared" />
       <FooterContent />
     </>
   );

@@ -12,11 +12,14 @@ export interface AuthStore {
   clearUserInformation: () => void;
   shouldShowAuthModal: boolean;
   changeAuthModalVisibility: (newValue: boolean) => void;
+  subscriptionTimestamp: number;
+  setSubscriptionTimestamp: (subscriptionTimestamp: number) => void;
 }
 
 const initialState = {
   userInformation: null,
   shouldShowAuthModal: true,
+  subscriptionTimestamp: 0,
 };
 
 const useAuthStore = create<AuthStore>()(
@@ -31,6 +34,9 @@ const useAuthStore = create<AuthStore>()(
       },
       changeAuthModalVisibility: (newValue: boolean) => {
         set({ shouldShowAuthModal: newValue });
+      },
+      setSubscriptionTimestamp: (subscriptionTimestamp: number) => {
+        set({ subscriptionTimestamp });
       },
     }),
     {

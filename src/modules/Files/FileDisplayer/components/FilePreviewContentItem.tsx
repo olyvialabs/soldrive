@@ -179,7 +179,7 @@ const FilePreviewInnerContentItem = ({
             <AvatarFallback>US</AvatarFallback>
           </Avatar>
           <p className="w-full flex-1 truncate text-sm text-muted-foreground">
-            User {item.to}
+            User {item.from}
           </p>
         </CardFooter>
       </Card>

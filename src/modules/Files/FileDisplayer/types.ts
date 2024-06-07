@@ -8,6 +8,8 @@ export interface FileDetails {
   file_parent_id?: string;
   cid: string;
   typ: string;
+  from: string;
+  to: string;
 }
 
 export interface FetchFilesResponse {

@@ -9,11 +9,11 @@ const useGetAllFilesByWalletIndexer = () => {
     setUserFilesErrorRetrieving,
   } = useUserFilesStore();
 
-  const getFilesByWallet = async (from: string) => {
+  const getFilesByWallet = async (from?: string, to?: string) => {
     setUserFilesRetrievingFiles(true);
     setUserFilesErrorRetrieving(null);
 
-    const response = await fetchFilesFromWallet(from);
+    const response = await fetchFilesFromWallet(from, to);
 
     if (response.success) {
       setUserFiles(response.data || []);

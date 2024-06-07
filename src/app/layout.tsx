@@ -8,9 +8,9 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "soldrive",
-  description: "soldrive",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  title: "Soldrive",
+  description: "Soldrive",
+  icons: [{ rel: "icon", url: "/app-logo.png" }],
 };
 
 export default function RootLayout({

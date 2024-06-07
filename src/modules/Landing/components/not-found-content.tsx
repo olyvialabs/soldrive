@@ -38,7 +38,7 @@ const NotFoundContent = () => {
             <BugIcon className="h-12 w-12" />
             <div className="space-y-2">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl">
-                404 Error
+                404 Not Found
               </h1>
               <p className="mx-auto max-w-[600px] text-gray-500 dark:text-gray-400 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                 The page you were looking for could not be found.
