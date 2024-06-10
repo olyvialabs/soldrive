@@ -21,17 +21,21 @@ const FileDisplayContentByView = () => {
 
   const filteredFiles = useMemo(() => {
     if (!currentFolderInformation.fileData?.id) {
-      return filesData.filter(
-        (item) =>
-          item.file_parent_id === "" ||
-          item.file_parent_id === null ||
-          item.file_parent_id === undefined,
-      );
+      return filesData
+        .filter(
+          (item) =>
+            item.file_parent_id === "" ||
+            item.file_parent_id === null ||
+            item.file_parent_id === undefined,
+        )
+        .sort((a) => (a.typ === "folder" ? -1 : 1));
     }
 
-    return filesData.filter(
-      (item) => item.file_parent_id === currentFolderInformation.fileData?.id,
-    );
+    return filesData
+      .filter(
+        (item) => item.file_parent_id === currentFolderInformation.fileData?.id,
+      )
+      .sort((a) => (a.typ === "folder" ? -1 : 1));
   }, [filesData, currentFolderInformation.fileData?.id]);
 
   if (!filteredFiles.length) {

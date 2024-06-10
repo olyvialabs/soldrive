@@ -6,6 +6,7 @@ import useContractIndexer from "~/modules/Files/hooks/useContractIndexer";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useState } from "react";
 import { useAuthStore } from "~/modules/Store/Auth/store";
+import UpgradeToProButton from "./UpgradeToProButton";
 
 export const UpgradeAccountContent = ({
   onUpgrade,
@@ -15,7 +16,6 @@ export const UpgradeAccountContent = ({
   const { getUserSubscriptionByWallet } = useContractIndexer();
   const { setSubscriptionTimestamp } = useAuthStore();
   const wallet = useWallet();
-  const [loading, setLoading] = useState(false);
 
   return (
     <div className="grid gap-8 md:grid-cols-2">
@@ -41,9 +41,10 @@ export const UpgradeAccountContent = ({
           </div>
         </div>
         <div className="text-center">
-          <Button variant="ghost" size="lg">
+          <span>Your current plan</span>
+          {/* <Button variant="ghost" size="lg">
             Start for free
-          </Button>
+          </Button> */}
         </div>
       </div>
       <div className="space-y-6">
@@ -75,7 +76,7 @@ export const UpgradeAccountContent = ({
           </div>
         </div>
         <div className="text-center">
-          <Button
+          {/* <Button
             className="w-full text-white md:w-auto"
             loading={loading}
             onClick={async () => {
@@ -92,7 +93,19 @@ export const UpgradeAccountContent = ({
             }}
           >
             Upgrade to PRO
-          </Button>
+          </Button> */}
+          <UpgradeToProButton
+            onUpgrade={async () => {
+              const response = await getUserSubscriptionByWallet(
+                wallet?.publicKey?.toString() || "",
+              );
+              // @TODO: validate timestamp of 30 days is not reached yet
+              if (response.data?.id) {
+                setSubscriptionTimestamp(response?.data?.timestamp || 0);
+              }
+              onUpgrade?.();
+            }}
+          />
         </div>
       </div>
     </div>

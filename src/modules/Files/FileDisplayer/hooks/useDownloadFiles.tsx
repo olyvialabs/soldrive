@@ -6,6 +6,7 @@ import { SIGN_MESSAGE } from "~/modules/Layout/components/CreateNewUser";
 import crypto from "crypto";
 import { useAuthStore } from "~/modules/Store/Auth/store";
 import { useUserFilesStore } from "~/modules/Store/UserFiles/store";
+import { FileDetails } from "../types";
 
 const useDownloadFiles = () => {
   const { fileSelection } = useFilesStore();
@@ -34,7 +35,7 @@ const useDownloadFiles = () => {
     return { publicKeyString, privateKeyString };
   };
 
-  const downloadFiles = async () => {
+  const downloadFiles = async (paramFile?: FileDetails) => {
     const userDid = userInformation?.did_public_address!;
     const chunks = [];
     for await (const chunk of ipfsClient.cat(userDid)) {
@@ -42,11 +43,13 @@ const useDownloadFiles = () => {
     }
     //const walletIpfsFileContent = Buffer.concat(chunks);
     //const fileContentJson = JSON.parse(walletIpfsFileContent.toString());
-    for (let fileId of fileSelection.filesSelected) {
-      const foundItem = allFiles.find((item) => item.id === fileId);
+    const downloadSpecificFile = async (fileId: string) => {
+      const foundItem = paramFile
+        ? paramFile
+        : allFiles.find((item) => item.id === fileId);
 
       if (!foundItem || foundItem.typ === "folder") {
-        continue;
+        return;
       }
 
       try {
@@ -91,6 +94,13 @@ const useDownloadFiles = () => {
         console.error("Error retrieving file content:", error);
         throw error;
       }
+    };
+    if (!paramFile) {
+      for (let fileId of fileSelection.filesSelected) {
+        await downloadSpecificFile(fileId);
+      }
+    } else {
+      await downloadSpecificFile(paramFile.id);
     }
   };
 

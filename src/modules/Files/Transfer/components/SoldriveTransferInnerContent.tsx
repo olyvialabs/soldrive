@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
+  ArrowLeftIcon,
+  FileMinusIcon,
   FilePlusIcon,
   InputIcon,
   PlusCircledIcon,
@@ -24,6 +26,7 @@ import { getIsUserSubscribed } from "~/modules/Store/Auth/selectors";
 import { useEncryptionFileEncryption } from "../../FileUpload/components/GlobalDnD";
 import { toast } from "sonner";
 import { env } from "~/env";
+import Link from "next/link";
 
 const SoldriveTransferInnerContent = () => {
   const wallet = useWallet();
@@ -59,6 +62,17 @@ const SoldriveTransferInnerContent = () => {
       });
       return;
     }
+    const tenMB = 10_485_760;
+    if (selectedFile?.size > tenMB && !isSubscribed) {
+      toast("10 MB limit for free plan reached", {
+        description:
+          "The current file exceds the limit size for free plan, select other file.",
+        position: "top-center",
+        icon: <FileMinusIcon />,
+      });
+      return;
+    }
+    // else, if paid, it just ignore the limit
     setIsUploadingFile(true);
     var reader = new FileReader();
     reader.onload = async function (e) {
@@ -92,6 +106,12 @@ const SoldriveTransferInnerContent = () => {
       />
       <Card className="w-full max-w-md max-w-sm rounded-lg shadow-sm">
         <CardHeader className="pb-0">
+          <Link href="/app">
+            <Button variant="link" className="gap-1 p-0">
+              <ArrowLeftIcon />
+              Go back
+            </Button>
+          </Link>
           <img src="/app-logo.png" className="w-12" />
           <CardTitle className="text-base">
             Descentralized File Transfer

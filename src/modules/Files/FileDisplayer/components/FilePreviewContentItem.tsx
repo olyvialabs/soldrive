@@ -2,7 +2,7 @@ import { MouseEvent, memo, useRef } from "react";
 import { useFilesStore } from "../../../Store/FileDisplayLayout/store";
 import { FilePreviewItemContextMenu } from "./FilePreviewItemContextMenu";
 import { Button } from "~/components/ui/button";
-import { DotsVerticalIcon } from "@radix-ui/react-icons";
+import { DotsVerticalIcon, FileIcon } from "@radix-ui/react-icons";
 import { FileDetails } from "../types";
 import { cn } from "~/lib/utils";
 import {
@@ -122,7 +122,7 @@ const FilePreviewInnerContentItem = ({
           isItemSelected ? "bg-gradient-to-br from-black to-purple-800" : "",
         )}
       >
-        <TableCell className="p-0 font-medium">
+        <TableCell className="flex p-0 font-medium">
           <FileRowContextWrapper file_id={item.id} allFiles={allFiles}>
             {item.name}
           </FileRowContextWrapper>

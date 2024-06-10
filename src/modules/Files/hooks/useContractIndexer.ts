@@ -1,12 +1,55 @@
 import { UserInformationData } from "~/modules/Store/Auth/store";
 import getUserByWalletQuery from "../FileUpload/query/getUserByWalletQuery";
-import { FetchFilesResponse } from "../FileDisplayer/types";
+import { FetchFilesResponse, FileDetails } from "../FileDisplayer/types";
 import getUserSubscriptionByWalletQuery from "../FileUpload/query/getUserSubscriptionByWalletQuery";
+import getFileByCidQuery from "../FileUpload/query/getFileByCidQuery";
 
 const indexerUrl = process.env.NEXT_PUBLIC_INDEXER_SERVICE_URL;
 const useContractIndexer = () => {
-  const getFileByCid = () => {
-    return null;
+  const getFileByCid = async (
+    cid: string,
+  ): Promise<{
+    success: boolean;
+    error?: string;
+    data?: FileDetails;
+  }> => {
+    try {
+      const response = await fetch(`${indexerUrl}/graphql`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: getFileByCidQuery(cid),
+        }),
+        cache: "no-cache",
+      });
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: `Network response was not ok: ${response.statusText}`,
+        };
+      }
+
+      const responseBody = await response.json();
+      if (responseBody.errors) {
+        return {
+          success: false,
+          error: `GraphQL error: ${responseBody.errors.map((e) => e.message).join(", ")}`,
+        };
+      }
+
+      return {
+        success: true,
+        data: responseBody.data.getFileByCid,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Error fetching user: ${(error as any)?.message || ""}`,
+      };
+    }
   };
 
   const getUserByWallet = async ({

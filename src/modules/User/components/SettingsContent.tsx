@@ -23,7 +23,7 @@ const SettingsContent = () => {
             <CardHeader className="space-between relative flex w-full flex-row">
               Subscription Status
             </CardHeader>
-            <CardContent className="px-2 md:px-4">
+            <CardContent className="px-2 md:px-6">
               <div className="text-xs text-gray-500">
                 Logged in as <b> {wallet?.publicKey?.toString()}</b>
               </div>

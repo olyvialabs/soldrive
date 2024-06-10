@@ -17,6 +17,7 @@ import { useUserFilesStore } from "~/modules/Store/UserFiles/store";
 import useGetAllFilesByWalletIndexer from "../../FileDisplayer/hooks/useGetAllFilesByWalletIndexer";
 import useContractIndexer from "../../hooks/useContractIndexer";
 import { useFilesStore } from "~/modules/Store/FileDisplayLayout/store";
+import { getIsUserSubscribed } from "~/modules/Store/Auth/selectors";
 
 const getColor = (props) => {
   if (props.isDragAccept) {
@@ -148,10 +149,22 @@ export const useEncryptionFileEncryption = () => {
 
 function GlobalDnD() {
   const { encryptFile } = useEncryptionFileEncryption();
+  const isSubscribed = useAuthStore(getIsUserSubscribed);
 
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } =
     useDropzone({
       onDrop: async ([file]) => {
+        const tenMB = 10_485_760;
+        if (file?.size > tenMB && !isSubscribed) {
+          toast("10 MB limit for free plan reached", {
+            description:
+              "The current file exceds the limit size for free plan, select other file.",
+            position: "top-center",
+            icon: <FileMinusIcon />,
+          });
+          return;
+        }
+
         var reader = new FileReader();
         reader.onload = async function (e) {
           const contentAsArrayBuffer = e.target?.result;
@@ -184,7 +197,10 @@ function GlobalDnD() {
         <input {...getInputProps()} />
         <FileIcon className="h-8 w-8" />{" "}
         <span className="text-sm font-semibold tracking-wide">
-          Drag and drop your files here
+          Drag and drop your files here.{" "}
+          {isSubscribed
+            ? "Unlimited size for PRO plan"
+            : "Up to 10MB for free plan"}
         </span>
       </Container>
     </div>

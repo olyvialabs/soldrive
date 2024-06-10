@@ -16,7 +16,6 @@ import { Label } from "~/components/ui/label";
 import crypto from "crypto";
 import nacl from "tweetnacl";
 import { Button } from "~/components/ui/button";
-import { AllSolanaContent } from "~/modules/Auth/components/WalletConnectionButton";
 import { useAuthStore } from "~/modules/Store/Auth/store";
 import ipfs from "~/modules/Files/FileUpload/components/utils/IpfsConfiguration";
 import useContractIndexer from "~/modules/Files/hooks/useContractIndexer";
