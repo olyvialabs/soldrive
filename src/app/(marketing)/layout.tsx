@@ -44,7 +44,15 @@ export default function MarketingLayout({
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>{children}</WalletModalProvider>
+        <WalletModalProvider>
+          <div className="w-full bg-purple-600 text-center">
+            <span className="w-full text-center">
+              This is a beta version of our platform. Please avoid uploading any
+              confidential or private information at this time.
+            </span>
+          </div>
+          {children}
+        </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
   );
