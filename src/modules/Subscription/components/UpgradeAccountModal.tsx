@@ -96,9 +96,9 @@ export const UpgradeAccountContent = ({
           </Button> */}
           <UpgradeToProButton
             onUpgrade={async () => {
-              const response = await getUserSubscriptionByWallet(
-                wallet?.publicKey?.toString() || "",
-              );
+              const response = await getUserSubscriptionByWallet({
+                walletAddress: wallet?.publicKey?.toString() || "",
+              });
               // @TODO: validate timestamp of 30 days is not reached yet
               if (response.data?.id) {
                 setSubscriptionTimestamp(response?.data?.timestamp || 0);

@@ -4,7 +4,11 @@ import { useUserFilesStore } from "~/modules/Store/UserFiles/store";
 
 const useInitializeFilesStores = () => {
   const { setPreviewFileDetails, changeForcedUploadFiles } = useFilesStore();
-  const { changeAuthModalVisibility } = useAuthStore();
+  const {
+    changeAuthModalVisibility,
+    setUserInformationData,
+    setSubscriptionTimestamp,
+  } = useAuthStore();
   const { clearStore: clearUserFilesStore } = useUserFilesStore();
 
   const clearAllStores = () => {
@@ -12,6 +16,8 @@ const useInitializeFilesStores = () => {
     clearUserFilesStore();
     setPreviewFileDetails({ fileContent: null, fileId: "", isVisible: false });
     changeForcedUploadFiles(false);
+    setUserInformationData(null);
+    setSubscriptionTimestamp(0);
   };
 
   return { clearAllStores };

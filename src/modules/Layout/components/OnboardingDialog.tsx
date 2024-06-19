@@ -121,6 +121,9 @@ const OnboardingDialogContent = () => {
           <div className="space-y-2">
             <Skeleton className="h-4 w-[250px]" />
             <Skeleton className="h-4 w-[200px]" />
+            <Skeleton className="h-4 w-[200px]" />
+            <Skeleton className="h-4 w-[200px]" />
+            <Skeleton className="h-4 w-[200px]" />
           </div>
         </div>
       </div>
@@ -140,7 +143,9 @@ const OnboardingDialogContent = () => {
           <CreateUserButton />
           <p className="text-primary-500 text-sm">
             Creating the User DID for wallet:{" "}
-            <b>{wallet.publicKey.toString()}</b>
+            <b className="break-all text-purple-600">
+              {wallet.publicKey.toString()}
+            </b>
           </p>
         </div>
       </div>
@@ -168,8 +173,8 @@ const OnboardingDialogContent = () => {
 export function OnboardingDialog() {
   // <AllSolanaContent>
   return (
-    <Dialog open={true}>
-      <DialogContent className="sm:max-w-[425px] ">
+    <Dialog open>
+      <DialogContent hideCrossButton className="sm:max-w-[425px] ">
         <div className="flex flex-col items-center justify-center">
           <OnboardingDialogContent />
         </div>

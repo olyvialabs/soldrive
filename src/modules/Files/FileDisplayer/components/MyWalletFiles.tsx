@@ -89,7 +89,7 @@ const MyWalletFiles = ({ forView }: { forView: "shared" | "own" }) => {
         forView === "shared" ? walletAddress : undefined,
       );
     }
-  }, [wallet?.publicKey, forView]);
+  }, [wallet, forView]);
 
   return (
     <AllSolanaContent>

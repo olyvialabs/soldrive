@@ -19,6 +19,7 @@ import { Button } from "~/components/ui/button";
 import { useAuthStore } from "~/modules/Store/Auth/store";
 import ipfs from "~/modules/Files/FileUpload/components/utils/IpfsConfiguration";
 import useContractIndexer from "~/modules/Files/hooks/useContractIndexer";
+import { toast } from "sonner";
 
 const PROGRAM_ID = new PublicKey(env.NEXT_PUBLIC_USERS_CONTRACT_ADDRESS);
 
@@ -58,8 +59,13 @@ const CreateUserButton: React.FC = () => {
   const wallet = useWallet();
   const [username, setUsername] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { changeAuthModalVisibility, setUserInformationData } = useAuthStore();
-  const { manualSyncUserCreation } = useContractIndexer();
+  const {
+    changeAuthModalVisibility,
+    setUserInformationData,
+    setSubscriptionTimestamp,
+  } = useAuthStore();
+  const { manualSyncUserCreation, getUserSubscriptionByWallet } =
+    useContractIndexer();
 
   // const formatKeyToByte32Key = (theSignedMsg: string) => {
   //   const hash = crypto.createHash("sha256");
@@ -163,19 +169,36 @@ const CreateUserButton: React.FC = () => {
 
       await connection.confirmTransaction(signature, "confirmed");
       await manualSyncUserCreation(userData);
+      const response = await getUserSubscriptionByWallet({
+        walletAddress: wallet?.publicKey?.toString()!,
+      });
+      if (response.data?.id) {
+        setSubscriptionTimestamp(response?.data?.timestamp || 0);
+      }
       setUserInformationData(userData);
+      changeAuthModalVisibility(false);
     } catch (error) {
-      console.error("Transaction failed", error);
+      if (error?.message?.includes("credit")) {
+        toast("Not enough balance to make transaction.", {
+          position: "top-center",
+          description: "Get Solana($SOL) and try again",
+        });
+      } else {
+        toast("There was an error creating a new user.", {
+          position: "top-center",
+          description: `Please contact support. ${error?.message || ""}`,
+        });
+      }
+      console.log("Transaction failed", error);
     } finally {
       setIsLoading(false);
-      changeAuthModalVisibility(false);
     }
   };
 
   // <AllSolanaContent>
   return (
     <>
-      <Label>Claim your username :</Label>
+      <Label>Claim your username</Label>
       <Input onChange={(e) => setUsername(e.target.value)} value={username} />
       <Button
         className="mt-2 w-full text-white"
