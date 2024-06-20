@@ -1,11 +1,9 @@
 "use client";
 
-import Link from "next/link";
-
 import { cn } from "~/lib/utils";
 import { buttonVariants } from "~/components/ui/button";
 import { IconProps } from "@radix-ui/react-icons/dist/types";
-import { useInitializeFilesStores } from "~/modules/Files/FileDisplayer/hooks/useInitializeFilesStores";
+import { useRouter } from "next/navigation";
 
 interface NavProps {
   currentSelected: string;
@@ -21,22 +19,21 @@ interface NavProps {
 }
 
 export function AppLeftSidenav({ links, currentSelected }: NavProps) {
-  const { clearAllStores } = useInitializeFilesStores();
+  const router = useRouter();
   return (
     <div className="group flex flex-col gap-4 py-2 data-[collapsed=true]:py-2">
       <nav className="grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2">
         {links.map((link, index) => (
-          <Link
+          <div
             key={index}
-            href={link.url}
             className={cn(
               buttonVariants({ variant: link.variant, size: "lg" }),
               currentSelected === link.key && "bg-muted",
               currentSelected !== link.key && "bg-transparent ",
-              "justify-start px-4  text-white hover:bg-muted hover:text-white",
+              "cursor-pointer justify-start px-4  text-white hover:bg-muted hover:text-white",
             )}
             onClick={() => {
-              clearAllStores();
+              router.push(link.url);
             }}
           >
             <link.icon className="mr-2 h-4 w-4" />
@@ -52,7 +49,7 @@ export function AppLeftSidenav({ links, currentSelected }: NavProps) {
                 {link.label}
               </span>
             )}
-          </Link>
+          </div>
         ))}
       </nav>
     </div>

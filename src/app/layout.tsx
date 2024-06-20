@@ -24,7 +24,7 @@ export default function RootLayout({
         className={`font-sans ${inter.variable} min-h-screen bg-background`}
       >
         {children}
-        <Toaster />
+        <Toaster position="top-center" />
       </body>
     </html>
   );

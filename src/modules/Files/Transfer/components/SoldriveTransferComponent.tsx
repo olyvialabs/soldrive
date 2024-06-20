@@ -9,20 +9,16 @@ import { AllSolanaContent } from "~/modules/Auth/components/WalletConnectionButt
 import { useUserFilesStore } from "~/modules/Store/UserFiles/store";
 import SoldriveTransferInnerContent from "./SoldriveTransferInnerContent";
 import useGetAllFilesByWalletIndexer from "../../FileDisplayer/hooks/useGetAllFilesByWalletIndexer";
+import { useInitializeFilesStores } from "../../FileDisplayer/hooks/useInitializeFilesStores";
 
 const SoldriveTransferComponent = () => {
-  const { setPreviewFileDetails, changeForcedUploadFiles } = useFilesStore();
   const { shouldShowAuthModal, userInformation, changeAuthModalVisibility } =
     useAuthStore();
   const wallet = useWallet();
-  const { clearStore: clearUserFilesStore } = useUserFilesStore();
   const { getFilesByWallet } = useGetAllFilesByWalletIndexer();
-
+  const { clearAllStores } = useInitializeFilesStores();
   useEffect(() => {
-    changeAuthModalVisibility(true);
-    clearUserFilesStore();
-    setPreviewFileDetails({ fileContent: null, fileId: "", isVisible: false });
-    changeForcedUploadFiles(false);
+    clearAllStores();
   }, []);
 
   useEffect(() => {
@@ -33,16 +29,15 @@ const SoldriveTransferComponent = () => {
   }, [wallet?.publicKey]);
 
   return (
-    <AllSolanaContent>
-      <div className="mx-auto flex w-full justify-center">
-        <div className="flex max-w-[1250px] gap-2">
-          <SoldriveTransferInnerContent />
-        </div>
-        {(shouldShowAuthModal || !userInformation?.did_public_address) && (
-          <OnboardingDialog />
-        )}
+    //<AllSolanaContent>
+    <div className="mx-auto flex w-full justify-center">
+      <div className="flex max-w-[1250px] gap-2">
+        <SoldriveTransferInnerContent forView="landing" />
       </div>
-    </AllSolanaContent>
+      {(shouldShowAuthModal || !userInformation?.did_public_address) && (
+        <OnboardingDialog />
+      )}
+    </div>
   );
 };
 

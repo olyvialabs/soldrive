@@ -13,6 +13,8 @@ import {
 import { useFilesStore } from "../../../Store/FileDisplayLayout/store";
 import useDownloadFiles from "../hooks/useDownloadFiles";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useState } from "react";
+import { FileSharingDialog } from "./FileSharingDialog";
 
 export function FilePreviewItemContextMenu({
   children,
@@ -27,43 +29,55 @@ export function FilePreviewItemContextMenu({
 }) {
   const wallet = useWallet();
   const { fileSelection, setPreviewFileDetails } = useFilesStore();
+  const [isShareDialogVisible, setIsShareDialogVisible] = useState(false);
   const { downloadFiles } = useDownloadFiles(
     wallet?.publicKey?.toString()! || "",
     allFiles,
   );
 
   return (
-    <ContextMenu onOpenChange={onOpenChange}>
-      <ContextMenuTrigger className="w-full">{children}</ContextMenuTrigger>
-      <ContextMenuContent className="w-64">
-        <ContextMenuItem inset>
-          <Share2Icon className="mr-2" /> Share
-        </ContextMenuItem>
-        <ContextMenuItem
-          inset
-          onClick={async () => {
-            await downloadFiles();
-          }}
-        >
-          <DownloadIcon className="mr-2" /> Download
-        </ContextMenuItem>
-        {/* <ContextMenuItem inset>
+    <>
+      <FileSharingDialog
+        open={isShareDialogVisible}
+        onOpenChange={setIsShareDialogVisible}
+      />
+      <ContextMenu onOpenChange={onOpenChange}>
+        <ContextMenuTrigger className="w-full">{children}</ContextMenuTrigger>
+        <ContextMenuContent className="w-64">
+          <ContextMenuItem
+            inset
+            onClick={() => {
+              setIsShareDialogVisible(true);
+            }}
+          >
+            <Share2Icon className="mr-2" /> Share
+          </ContextMenuItem>
+          <ContextMenuItem
+            inset
+            onClick={async () => {
+              await downloadFiles();
+            }}
+          >
+            <DownloadIcon className="mr-2" /> Download
+          </ContextMenuItem>
+          {/* <ContextMenuItem inset>
           <CopyIcon className="mr-2" /> Make a copy
         </ContextMenuItem> */}
-        <ContextMenuItem
-          inset
-          onClick={() => {
-            // if this enters, it means it's not disabled, which meant's
-            // there's only one file selected
-            setPreviewFileDetails({
-              fileId: file_id || fileSelection.filesSelected[0],
-              isVisible: true,
-            });
-          }}
-        >
-          <InfoCircledIcon className="mr-2" /> File information
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+          <ContextMenuItem
+            inset
+            onClick={() => {
+              // if this enters, it means it's not disabled, which meant's
+              // there's only one file selected
+              setPreviewFileDetails({
+                fileId: file_id || fileSelection.filesSelected[0],
+                isVisible: true,
+              });
+            }}
+          >
+            <InfoCircledIcon className="mr-2" /> File information
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+    </>
   );
 }

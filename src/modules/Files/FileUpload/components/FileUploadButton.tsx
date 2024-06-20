@@ -88,7 +88,7 @@ export const useSaveFileDataOnChain = () => {
     to: string;
   }) => {
     if (!publicKey || !signTransaction) {
-      alert("Wallet not connected");
+      toast("Wallet not connected");
       return;
     }
     setIsLoading(true);

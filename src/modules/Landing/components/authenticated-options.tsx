@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
@@ -44,7 +45,15 @@ export function AuthenticatedOptions({
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>My files</DropdownMenuItem>
+          <Link href="/app">
+            <DropdownMenuItem>My files</DropdownMenuItem>
+          </Link>
+          <Link href="/shared">
+            <DropdownMenuItem>Shared with me</DropdownMenuItem>
+          </Link>
+          <Link href="/transfer">
+            <DropdownMenuItem>Transfer with Magic Link</DropdownMenuItem>
+          </Link>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -53,7 +62,9 @@ export function AuthenticatedOptions({
         //   window.location.reload();
         // }}
         >
-          <WalletConnectionButton type="disconnect" />
+          <div className="flex flex-col">
+            <WalletConnectionButton type="both" />
+          </div>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

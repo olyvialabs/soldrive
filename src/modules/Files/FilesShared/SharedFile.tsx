@@ -121,51 +121,50 @@ const SharedFile = ({ cid }: { cid: string }) => {
   }
 
   return (
-    <AllSolanaContent>
-      <div className="mx-auto flex w-full justify-center">
-        <div className="flex max-w-[1250px] gap-2">
-          <div className="flex flex-col justify-center">
-            <Card className="w-full max-w-md max-w-sm rounded-lg shadow-sm">
-              <CardHeader className="pb-0">
-                <Link href="/app">
-                  <Button variant="link" className="gap-1 p-0">
-                    <ArrowLeftIcon />
-                    Go back
-                  </Button>
-                </Link>
-                <img src="/app-logo.png" className="w-12" />
-                <CardTitle className="mb-4 text-base">
-                  Descentralized File Transfer
-                </CardTitle>
-              </CardHeader>
-              <div className="mt-2 flex flex-col space-y-2 break-all px-6">
-                <span className="break-all">File: {currentFileData.name}</span>
-                <span className="break-all">
-                  Size: {bytesToMegabytes(currentFileData.weight || 0)} MB
-                </span>
-                <span className="break-all pb-4 text-gray-500">
-                  You are downloading a file shared by{" "}
-                  <b className="text-purple-500">{currentFileData.from}</b>
-                </span>
-              </div>
-              <CardFooter className="flex items-center justify-between border-t p-4">
-                <Button
-                  loading={isDownloadingFile}
-                  disabled={isDownloadingFile}
-                  className="w-full text-white"
-                  onClick={() => downloadFile()}
-                >
-                  <DownloadIcon className="mr-1" /> Download
+    //<AllSolanaContent>
+    <div className="mx-auto flex w-full justify-center">
+      <div className="flex max-w-[1250px] gap-2">
+        <div className="flex flex-col justify-center">
+          <Card className="w-full max-w-md max-w-sm rounded-lg shadow-sm">
+            <CardHeader className="pb-0">
+              <Link href="/app">
+                <Button variant="link" className="gap-1 p-0">
+                  <ArrowLeftIcon />
+                  Go back
                 </Button>
-              </CardFooter>
-            </Card>
-          </div>
+              </Link>
+              <img src="/app-logo.png" className="w-12" />
+              <CardTitle className="mb-4 text-base">
+                Descentralized File Transfer
+              </CardTitle>
+            </CardHeader>
+            <div className="mt-2 flex flex-col space-y-2 break-all px-6">
+              <span className="break-all">File: {currentFileData.name}</span>
+              <span className="break-all">
+                Size: {bytesToMegabytes(currentFileData.weight || 0)} MB
+              </span>
+              <span className="break-all pb-4 text-gray-500">
+                You are downloading a file shared by{" "}
+                <b className="text-purple-500">{currentFileData.from}</b>
+              </span>
+            </div>
+            <CardFooter className="flex items-center justify-between border-t p-4">
+              <Button
+                loading={isDownloadingFile}
+                disabled={isDownloadingFile}
+                className="w-full text-white"
+                onClick={() => downloadFile()}
+              >
+                <DownloadIcon className="mr-1" /> Download
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
-        {(shouldShowAuthModal || !userInformation?.did_public_address) && (
-          <OnboardingDialog />
-        )}
       </div>
-    </AllSolanaContent>
+      {(shouldShowAuthModal || !userInformation?.did_public_address) && (
+        <OnboardingDialog />
+      )}
+    </div>
   );
 };
 

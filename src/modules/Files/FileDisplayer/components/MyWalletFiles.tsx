@@ -78,12 +78,11 @@ const MyWalletFiles = ({ forView }: { forView: "shared" | "own" }) => {
   const { shouldShowAuthModal, userInformation } = useAuthStore();
   const wallet = useWallet();
   const { getFilesByWallet } = useGetAllFilesByWalletIndexer();
-  const { clearAllStores } = useInitializeFilesStores();
 
   useEffect(() => {
     const walletAddress = wallet?.publicKey?.toString();
     if (walletAddress) {
-      clearAllStores();
+      // clearAllStores();
       getFilesByWallet(
         forView === "shared" ? undefined : walletAddress,
         forView === "shared" ? walletAddress : undefined,
@@ -92,27 +91,26 @@ const MyWalletFiles = ({ forView }: { forView: "shared" | "own" }) => {
   }, [wallet, forView]);
 
   return (
-    <AllSolanaContent>
-      <div className="mx-auto flex w-full justify-center">
-        <div className="flex h-full w-full max-w-[1250px] items-stretch gap-2">
-          <div className="hidden min-w-[250px] px-1 md:block">
-            <AddNewFileButton />
-            <AppLeftSidenav
-              links={sidenavItems}
-              currentSelected={forView === "shared" ? "shared" : "home"}
-            />
-          </div>
-          {forView === "shared" ? (
-            <SharedFilesWithMe />
-          ) : (
-            <MyWalletFilesLayoutWrapper />
-          )}
+    //<AllSolanaContent>
+    <div className="mx-auto flex w-full justify-center">
+      <div className="flex h-full w-full max-w-[1250px] items-stretch gap-2">
+        <div className="hidden min-w-[250px] px-1 md:block">
+          <AddNewFileButton />
+          <AppLeftSidenav
+            links={sidenavItems}
+            currentSelected={forView === "shared" ? "shared" : "home"}
+          />
         </div>
-        {(shouldShowAuthModal || !userInformation?.did_public_address) && (
-          <OnboardingDialog />
+        {forView === "shared" ? (
+          <SharedFilesWithMe />
+        ) : (
+          <MyWalletFilesLayoutWrapper />
         )}
       </div>
-    </AllSolanaContent>
+      {(shouldShowAuthModal || !userInformation?.did_public_address) && (
+        <OnboardingDialog />
+      )}
+    </div>
   );
 };
 

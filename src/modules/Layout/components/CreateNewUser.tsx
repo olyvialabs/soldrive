@@ -20,6 +20,7 @@ import { useAuthStore } from "~/modules/Store/Auth/store";
 import ipfs from "~/modules/Files/FileUpload/components/utils/IpfsConfiguration";
 import useContractIndexer from "~/modules/Files/hooks/useContractIndexer";
 import { toast } from "sonner";
+import useGetAuthenticatedWalletKeys from "~/modules/User/hooks/useGetAuthenticatedWalletKeys";
 
 const PROGRAM_ID = new PublicKey(env.NEXT_PUBLIC_USERS_CONTRACT_ADDRESS);
 
@@ -53,8 +54,6 @@ const UserMetadataSchema = new Map([
   ],
 ]);
 
-export const SIGN_MESSAGE = "Sign this message to generate your DID.";
-
 const CreateUserButton: React.FC = () => {
   const wallet = useWallet();
   const [username, setUsername] = useState("");
@@ -66,40 +65,22 @@ const CreateUserButton: React.FC = () => {
   } = useAuthStore();
   const { manualSyncUserCreation, getUserSubscriptionByWallet } =
     useContractIndexer();
+  const { generateUniqueCredentials } = useGetAuthenticatedWalletKeys();
 
-  // const formatKeyToByte32Key = (theSignedMsg: string) => {
-  //   const hash = crypto.createHash("sha256");
-  //   hash.update(theSignedMsg);
-  //   return hash.digest();
-  // };
-  const generateUniqueCredentials = async (provider) => {
-    const encodedMessage = new TextEncoder().encode(SIGN_MESSAGE);
-
-    // Request signature from the user
-    const signedMessage = await provider.signMessage(encodedMessage);
-    const seed = crypto
-      .createHash("sha256")
-      .update(signedMessage)
-      .digest()
-      .slice(0, 32);
-    const keyPair = nacl.sign.keyPair.fromSeed(seed);
-    const publicKeyString = bs58.encode(keyPair.publicKey);
-    const privateKeyString = bs58.encode(keyPair.secretKey);
-    return { publicKeyString, privateKeyString };
-  };
-
-  const generateUserCredentials = async () => {
+  const createNewDidUserCredentials = async () => {
     // validate if no wallet is found in the explorer.
     const provider = window.solana;
     if (!provider) {
-      alert("solana is not found.");
-
-      return;
+      toast("Solana Provider was not found :(", {
+        description: "Please try installing solana before continuing",
+        position: "top-center",
+      });
+      return {};
     }
 
     const walletPublicKey = provider.publicKey.toString();
     await provider.connect();
-    const { publicKeyString } = await generateUniqueCredentials(provider);
+    const { publicKeyString } = await generateUniqueCredentials();
     const newDidId = crypto.createHash("sha256").digest().toString();
     const didDocument = {
       did: `did:v1:filesharing:${newDidId}`,
@@ -114,27 +95,37 @@ const CreateUserButton: React.FC = () => {
   const createUser = async () => {
     const provider = window.solana;
     if (!provider) {
-      alert("solana is not found.");
+      toast("Solana Wallet not found", {
+        description: "Please install Phantom or similar wallet to continue",
+      });
       return;
     }
     const walletPublicKey = provider.publicKey.toString();
 
     if (!walletPublicKey) {
-      alert("no wallet found");
+      toast("Solana Wallet not found", {
+        description: "Please install Phantom or similar wallet to continue",
+      });
       return;
     }
 
     if (!username) {
-      alert("Provide a username to continue");
+      toast("Username field empty", {
+        description: "Please add a username to continue",
+      });
       return;
     }
 
     setIsLoading(true);
     const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
-    const result = await generateUserCredentials();
+    const result = await createNewDidUserCredentials();
     if (!result?.cid) {
-      return alert("there was an error!");
+      toast("Error creating user DID", {
+        description:
+          "There was an issue generating your DID, please contact support",
+      });
+      return;
     }
 
     const userData = {
@@ -166,12 +157,15 @@ const CreateUserButton: React.FC = () => {
         signedTransaction.serialize(),
         { skipPreflight: false, preflightCommitment: "confirmed" },
       );
-
-      await connection.confirmTransaction(signature, "confirmed");
-      await manualSyncUserCreation(userData);
-      const response = await getUserSubscriptionByWallet({
-        walletAddress: wallet?.publicKey?.toString()!,
-      });
+      const responses = await Promise.allSettled([
+        connection.confirmTransaction(signature, "confirmed"),
+        manualSyncUserCreation(userData),
+        getUserSubscriptionByWallet({
+          walletAddress: wallet?.publicKey?.toString()!,
+        }),
+      ]);
+      const response =
+        responses[2].status === "fulfilled" ? responses[2].value : { data: {} };
       if (response.data?.id) {
         setSubscriptionTimestamp(response?.data?.timestamp || 0);
       }

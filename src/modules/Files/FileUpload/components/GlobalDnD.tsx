@@ -3,7 +3,6 @@ import { useDropzone } from "react-dropzone";
 import styled from "styled-components";
 import { useWallet } from "@solana/wallet-adapter-react";
 import ipfsClient from "./utils/IpfsConfiguration";
-import { SIGN_MESSAGE } from "~/modules/Layout/components/CreateNewUser";
 import nacl from "tweetnacl";
 import bs58 from "bs58";
 import crypto from "crypto";
@@ -18,6 +17,7 @@ import useGetAllFilesByWalletIndexer from "../../FileDisplayer/hooks/useGetAllFi
 import useContractIndexer from "../../hooks/useContractIndexer";
 import { useFilesStore } from "~/modules/Store/FileDisplayLayout/store";
 import { getIsUserSubscribed } from "~/modules/Store/Auth/selectors";
+import useGetAuthenticatedWalletKeys from "~/modules/User/hooks/useGetAuthenticatedWalletKeys";
 
 const getColor = (props) => {
   if (props.isDragAccept) {
@@ -39,30 +39,10 @@ export const useEncryptionFileEncryption = () => {
   const { currentFolderInformation } = useFilesStore();
   const { userInformation } = useAuthStore();
   const { getFilesByWallet } = useGetAllFilesByWalletIndexer();
-  const { manualSyncFileCreation } = useContractIndexer();
+  const { manualSyncFileCreation, getUserByWallet } = useContractIndexer();
   const { mintToken } = useSaveFileDataOnChain();
   const { changeForcedUploadFiles } = useFilesStore();
-  const getUniqueCredentials = async () => {
-    const provider = window.solana;
-    if (!provider) {
-      alert("solana is not found.");
-
-      return;
-    }
-    const encodedMessage = new TextEncoder().encode(SIGN_MESSAGE);
-
-    // Request signature from the user
-    const signedMessage = await provider.signMessage(encodedMessage);
-    const seed = crypto
-      .createHash("sha256")
-      .update(signedMessage)
-      .digest()
-      .slice(0, 32);
-    const keyPair = nacl.sign.keyPair.fromSeed(seed);
-    const publicKeyString = bs58.encode(keyPair.publicKey);
-    const privateKeyString = bs58.encode(keyPair.secretKey);
-    return { publicKeyString, privateKeyString };
-  };
+  const { generateUniqueCredentials } = useGetAuthenticatedWalletKeys();
 
   const encryptFile = async (
     content: any,
@@ -70,20 +50,34 @@ export const useEncryptionFileEncryption = () => {
     size: number,
     destinationWallet?: string,
   ) => {
-    //wallet.publicKey?.toString()
-    const targetWallet = wallet.publicKey?.toString();
+    const myUserWallet = wallet.publicKey?.toString();
 
-    const userDid = userInformation?.did_public_address!;
-    const chunks = [];
-    for await (const chunk of ipfsClient.cat(userDid)) {
-      chunks.push(chunk);
+    const myUserDid = userInformation?.did_public_address!;
+    // let otherUserDid = userInformation?.did_public_address!;
+    // const isDestinationOtherAddress = myUserWallet !== destinationWallet;
+    // if (isDestinationOtherAddress) {
+    //   const otherAddrInfo = await getUserByWallet({
+    //     walletAddress: destinationWallet!,
+    //   });
+    //   if (!otherAddrInfo.success || !otherAddrInfo.data?.did_public_address) {
+    //     toast("There was an issue with user DID retrieval", {
+    //       description:
+    //         "Please try again. Contact support if this issue persist.",
+    //     });
+    //     return;
+    //   }
+    //   otherUserDid = otherAddrInfo.data?.did_public_address!;
+    // }
+    const ipfsFileContentChunks = [];
+    for await (const chunk of ipfsClient.cat(myUserDid)) {
+      ipfsFileContentChunks.push(chunk);
     }
-    const walletIpfsFileContent = Buffer.concat(chunks);
+    const walletIpfsFileContent = Buffer.concat(ipfsFileContentChunks);
     const fileContentJson = JSON.parse(walletIpfsFileContent.toString());
 
-    const { privateKeyString } = (await getUniqueCredentials()) || {};
+    const { privateKeyString } = await generateUniqueCredentials();
     // Decode the private key string
-    const privateKey = bs58.decode(privateKeyString);
+    const privateKey = bs58.decode(privateKeyString!);
     // Use the first 32 bytes of the private key as the shared secret
     const secretKey = privateKey.slice(0, 32);
 
@@ -97,8 +91,18 @@ export const useEncryptionFileEncryption = () => {
       // Otherwise, assume it's a string and encode it
       encodedMessage = encoder.encode(content);
     }
+
+    // @TODO:
+    // This key must be encrypted based on b58
+    // instead of TextEncoder
+    const destinationPublicKey = encoder.encode(fileContentJson);
     const nonce = nacl.randomBytes(nacl.secretbox.nonceLength);
-    const encryptedMessage = nacl.secretbox(encodedMessage, nonce, secretKey);
+    const encryptedMessage = nacl.secretbox(
+      encodedMessage,
+      nonce,
+      ///destinationPublicKey,
+      secretKey,
+    );
 
     // Combine the nonce and the encrypted message
     const combined = new Uint8Array(nonce.length + encryptedMessage.length);
@@ -114,35 +118,16 @@ export const useEncryptionFileEncryption = () => {
       file_parent_id: currentFolderInformation.fileData?.id || "",
       typ: "file",
       weight: size,
-      from: targetWallet!,
-      to: destinationWallet || targetWallet!,
+      from: myUserWallet!,
+      to: destinationWallet || myUserWallet!,
     };
     await mintToken(newToken);
     toast(`New file ${fileName} created.`);
     await manualSyncFileCreation(newToken);
     changeForcedUploadFiles(false);
-    // on create new file, reload all data
-    getFilesByWallet(targetWallet!);
+    // on create new file/folder, reload all data
+    getFilesByWallet(myUserWallet!);
     return { cid: added.cid.toString() };
-    // Example decryption (normally you would do this where you need the decrypted data)
-    let letNewChunks = [];
-    for await (const chunk of ipfsClient.cat(added.cid.toString())) {
-      letNewChunks.push(chunk);
-    }
-    const fetchedEncryptedData = Buffer.concat(letNewChunks);
-    const decryptedContent = nacl.secretbox.open(
-      fetchedEncryptedData.slice(nacl.secretbox.nonceLength),
-      fetchedEncryptedData.slice(0, nacl.secretbox.nonceLength),
-      secretKey,
-    );
-
-    if (!decryptedContent) {
-      console.error("Decryption failed");
-      return;
-    }
-
-    const decoder = new TextDecoder();
-    const decryptedString = decoder.decode(decryptedContent);
   };
   return { encryptFile };
 };

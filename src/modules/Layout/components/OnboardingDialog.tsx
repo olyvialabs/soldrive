@@ -17,6 +17,7 @@ import { UserInformationData, useAuthStore } from "~/modules/Store/Auth/store";
 import CreateUserButton from "./CreateNewUser";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
+import { useInitializeFilesStores } from "~/modules/Files/FileDisplayer/hooks/useInitializeFilesStores";
 
 const OnboardingDialogContent = () => {
   const wallet = useWallet();
@@ -26,7 +27,7 @@ const OnboardingDialogContent = () => {
   const [shouldShowCreateDid, setShouldShowCreateDid] = useState(false);
   const { getUserByWallet } = useContractIndexer();
   const { changeAuthModalVisibility, setUserInformationData } = useAuthStore();
-
+  const { clearAllStores } = useInitializeFilesStores();
   const findUserWithWalletRegistered = async () => {
     if (!wallet?.publicKey) {
       toast(
@@ -38,6 +39,7 @@ const OnboardingDialogContent = () => {
     if (!retryingLoading) {
       setRetryingLoading(true);
     }
+    clearAllStores();
     const response = await getUserByWallet({
       walletAddress: wallet.publicKey.toString(),
     });
