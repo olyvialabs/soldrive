@@ -7,17 +7,18 @@ import { useUserFilesStore } from "~/modules/Store/UserFiles/store";
 import { FileDetails } from "../types";
 import useGetAuthenticatedWalletKeys from "~/modules/User/hooks/useGetAuthenticatedWalletKeys";
 import { toast } from "sonner";
+import useContractIndexer from "../../hooks/useContractIndexer";
 
 const useDownloadFiles = () => {
   const { fileSelection } = useFilesStore();
   const { files: allFiles } = useUserFilesStore();
   const { userInformation } = useAuthStore();
   const { generateUniqueCredentials } = useGetAuthenticatedWalletKeys();
-
+  const { getUserByWallet } = useContractIndexer();
   const downloadSpecificFile = async (
     fileId: string,
-    privateKeyString: string,
-    // publicKeyString?: string,
+    publicKeyUserDid: string,
+    privateKeyUserDid: string,
     options?: { specificTargetedFile?: FileDetails; returnBlob?: boolean },
   ) => {
     const foundItem = options?.specificTargetedFile
@@ -37,17 +38,20 @@ const useDownloadFiles = () => {
       // const walletIpfsFileContent = Buffer.concat(chunks);
 
       // Decode the private key string
-      const privateKey = bs58.decode(privateKeyString!);
+      const privateKey = bs58.decode(privateKeyUserDid!).slice(0, 32);
       // Use the first 32 bytes of the private key as the shared secret
-      const secretKey = privateKey.slice(0, 32);
+      const publicKey = bs58.decode(publicKeyUserDid!).slice(0, 32);
       const fetchedEncryptedData = Buffer.concat(chunks);
-      const decryptedContent = nacl.secretbox.open(
-        fetchedEncryptedData.slice(nacl.secretbox.nonceLength),
-        fetchedEncryptedData.slice(0, nacl.secretbox.nonceLength),
-        // publicKeyString,
-        secretKey,
+      console.log({ privateKey });
+      console.log({ privateKey });
+      console.log({ privateKey });
+      const decryptedContent = nacl.box.open(
+        fetchedEncryptedData.slice(nacl.box.nonceLength),
+        fetchedEncryptedData.slice(0, nacl.box.nonceLength),
+        publicKey,
+        privateKey,
       );
-
+      console.log({});
       if (!decryptedContent) {
         toast("You don't have permissions to download this file", {
           description: "Ask for permissions to the owner first!",
@@ -76,20 +80,32 @@ const useDownloadFiles = () => {
     }
   };
   const downloadFiles = async (specificTargetedFile?: FileDetails) => {
-    const userDid = userInformation?.did_public_address!;
-    const chunks = [];
-    for await (const chunk of ipfsClient.cat(userDid)) {
-      chunks.push(chunk);
+    // defualts to the actual user
+    const fromWallet = await getUserByWallet({
+      walletAddress: specificTargetedFile?.from!,
+    });
+    if (fromWallet.error || !fromWallet.success) {
+      toast("There was an issue retrieving destination user information", {
+        description: "Try again later",
+      });
+      return;
     }
+
+    // const walletIpfsFileContent = Buffer.concat(ipfsFileContentChunks);
+    // const fileContentJson = JSON.parse(walletIpfsFileContent.toString());
 
     const { privateKeyString } = await generateUniqueCredentials();
     if (!specificTargetedFile) {
+      alert("not entering here");
       for (let fileId of fileSelection.filesSelected) {
-        await downloadSpecificFile(fileId, privateKeyString);
+        // not valid because public change between file
+        // and it's taking self user public key
+        await downloadSpecificFile(fileId, "", privateKeyString);
       }
     } else {
       await downloadSpecificFile(
         specificTargetedFile.id, // we don't care, we care about specificTargetedFile
+        fromWallet.data?.did_public_key!,
         privateKeyString,
         { specificTargetedFile },
       );

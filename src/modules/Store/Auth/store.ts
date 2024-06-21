@@ -4,6 +4,8 @@ import { create } from "zustand";
 export interface UserInformationData {
   user_solana: string;
   did_public_address: string;
+  did_public_key: string;
+  username: string;
 }
 
 export interface AuthStore {

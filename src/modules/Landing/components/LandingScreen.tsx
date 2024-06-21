@@ -81,7 +81,7 @@ export const LandingScreen = () => {
                 href="/app"
                 className="rounded bg-green-500 px-3 py-2 text-white transition duration-300 hover:bg-green-600"
               >
-                Launch App
+                Go to Dashboard
               </a>
             </div>
           </div>
@@ -118,10 +118,10 @@ export const LandingScreen = () => {
               storage interface for any user. Powered by Solana.
             </p>
             <a
-              href="/app"
+              href="/transfer"
               className="inline-block rounded-full bg-green-500 px-8 py-3 font-bold uppercase tracking-widest text-white transition duration-200 hover:bg-green-600"
             >
-              Try SolDrive
+              Send your first file!
             </a>
           </div>
           <div className="md:w-5/5 flex lg:block lg:w-3/5">

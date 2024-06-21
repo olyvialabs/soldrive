@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
   ArrowLeftIcon,
+  FileIcon,
   FileMinusIcon,
   FilePlusIcon,
   InputIcon,
@@ -22,7 +23,7 @@ import {
 import { Label } from "@radix-ui/react-label";
 import { Input } from "~/components/ui/input";
 import UpgradeAccountModal from "~/modules/Subscription/components/UpgradeAccountModal";
-import { useAuthStore } from "~/modules/Store/Auth/store";
+import { UserInformationData, useAuthStore } from "~/modules/Store/Auth/store";
 import { getIsUserSubscribed } from "~/modules/Store/Auth/selectors";
 import { useEncryptionFileEncryption } from "../../FileUpload/components/GlobalDnD";
 import { toast } from "sonner";
@@ -34,6 +35,7 @@ import useDownloadFiles from "../../FileDisplayer/hooks/useDownloadFiles";
 import { useUserFilesStore } from "~/modules/Store/UserFiles/store";
 import useGetAuthenticatedWalletKeys from "~/modules/User/hooks/useGetAuthenticatedWalletKeys";
 import useContractIndexer from "../../hooks/useContractIndexer";
+import { UsernameSearchInput } from "./UsernameSearchInput";
 
 type ForView = "landing" | "dialog";
 const TransferInnerContentHeader = ({ forView }: { forView: ForView }) => {
@@ -62,13 +64,15 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
     size: number;
   }>(null);
   const { getUserByWallet } = useContractIndexer();
-  const [destinationWallet, setDestinationWallet] = useState("");
+  const [destinationUser, setDestinationUser] =
+    useState<UserInformationData | null>(null);
   const { encryptFile } = useEncryptionFileEncryption();
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [generatedCid, setGeneratedCid] = useState("");
   const { files: allFiles } = useUserFilesStore();
   const { fileSelection } = useFilesStore();
   const { downloadSpecificFile } = useDownloadFiles();
+  const { userInformation } = useAuthStore();
   const { generateUniqueCredentials } = useGetAuthenticatedWalletKeys();
   const handleFileChange = (event) => {
     if (event.target.files && event.target.files[0]) {
@@ -88,7 +92,7 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
       });
       return;
     }
-    if (!destinationWallet) {
+    if (!destinationUser) {
       toast("Add a destination wallet address to continue", {
         position: "top-center",
         icon: <InputIcon />,
@@ -96,27 +100,19 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
       return;
     }
 
-    const destinationUserInfo = await getUserByWallet({
-      walletAddress: destinationWallet,
-    });
-
-    if (
-      !destinationUserInfo?.success ||
-      !destinationUserInfo?.data?.did_public_address
-    ) {
-      toast("This address haven't registered into the app", {
-        description: "Notify them or wait for them to start sending messages",
-        position: "top-center",
-        icon: <PersonIcon />,
-      });
-      return;
-    }
     if (forView === "dialog") {
       const { privateKeyString } = await generateUniqueCredentials();
       let promises = [];
       for (const fileId of fileSelection.filesSelected) {
         promises.push(
-          downloadSpecificFile(fileId, privateKeyString, { returnBlob: true }),
+          downloadSpecificFile(
+            fileId,
+            userInformation?.did_public_key!,
+            privateKeyString,
+            {
+              returnBlob: true,
+            },
+          ),
         );
       }
       const downloadPromises = await Promise.allSettled(promises);
@@ -145,7 +141,7 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
               fileUint8Array,
               foundItem?.name || "Unknown",
               foundItem?.weight || 0,
-              destinationWallet,
+              destinationUser,
             ),
           );
         }
@@ -156,9 +152,9 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
           (item) => item.status === "fulfilled",
         ).length;
         toast("Files shared!", {
-          description: `${sumShared}/${sharePromisesResponse.length} Files shared to ${destinationWallet}`,
+          description: `${sumShared}/${sharePromisesResponse.length} Files shared to ${destinationUser.username}`,
         });
-        setDestinationWallet("");
+        setDestinationUser(null);
         setIsUploadingFile(false);
       } else {
         toast("You can't share this files, try selecting files only for now");
@@ -191,12 +187,12 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
           contentAsUint8Array,
           selectedFile?.name || "Unknown",
           selectedFile?.size || 0,
-          destinationWallet,
+          destinationUser,
         );
         setGeneratedCid(encrypedFile?.cid || "");
         setIsUploadingFile(false);
         setSelectedFile(null);
-        setDestinationWallet("");
+        setDestinationUser(null);
       }
     };
     reader.readAsArrayBuffer(selectedFile);
@@ -258,8 +254,9 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
                     onChange={handleFileChange}
                   />
                   {selectedFile && (
-                    <div className="mt-4 flex w-fit items-center space-x-2 rounded-lg border px-2 py-1">
-                      <span>{selectedFile.name}</span>
+                    <div className="mt-2 flex w-fit items-center space-x-2 rounded-lg border px-2 py-1">
+                      <FileIcon />
+                      <span className="flex flex-1">{selectedFile.name}</span>
                       <button
                         className="text-red-500"
                         onClick={handleRemoveFile}
@@ -279,7 +276,7 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
                   </span>
                 </div>
               ) : (
-                <div className="mb-4 flex items-center justify-between">
+                <div className="my-2 flex items-center justify-between">
                   <span className="mt-2 text-xs text-gray-500">
                     Up to 10 MB per file on free plan.
                   </span>
@@ -296,22 +293,21 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
               )}
               <div className="flex flex-col space-y-4">
                 <div>
-                  <Label htmlFor="to" className="text-sm">
-                    Destination wallet address:
-                  </Label>
-                  <Input
-                    id="to"
-                    placeholder="To whom"
-                    onChange={(e) => {
-                      setDestinationWallet(e.target.value);
-                    }}
-                    value={destinationWallet}
+                  <UsernameSearchInput
+                    setCurrentUser={setDestinationUser}
+                    currentUser={destinationUser}
                   />
                 </div>
                 <div className="mt-2 flex flex-col">
-                  <Label className="text-sm">Your wallet</Label>
+                  <Label className="break-all text-base font-semibold tracking-tight">
+                    Your information
+                  </Label>
                   <div className="">
-                    <span className="break-all text-sm font-bold">
+                    <span className="break-all text-sm">
+                      <b className="text-purple-500">
+                        {userInformation?.username}
+                      </b>{" "}
+                      with address{" "}
                       {wallet?.publicKey ? wallet.publicKey.toString() : ""}
                     </span>
                   </div>

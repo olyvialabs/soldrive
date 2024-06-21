@@ -78,11 +78,25 @@ const MyWalletFiles = ({ forView }: { forView: "shared" | "own" }) => {
   const { shouldShowAuthModal, userInformation } = useAuthStore();
   const wallet = useWallet();
   const { getFilesByWallet } = useGetAllFilesByWalletIndexer();
+  const { clearFileRelatedStores } = useInitializeFilesStores();
+  // useEffect(() => {
+  //   const walletAddress = wallet?.publicKey?.toString();
+  //   if (
+  //     walletAddress &&
+  //     userInformation?.user_solana &&
+  //     walletAddress !== userInformation?.user_solana
+  //   ) {
+  //     clearFileRelatedStores();
+  //   }
+  // }, [wallet, userInformation?.user_solana, clearFileRelatedStores]);
 
   useEffect(() => {
-    const walletAddress = wallet?.publicKey?.toString();
+    // let's use userInformation, as when they aren't logged in it shouldn't
+    // retrieve anything,
+    // but when they log in, re-fire this
+    const walletAddress = userInformation?.did_public_address;
     if (walletAddress) {
-      // clearAllStores();
+      clearFileRelatedStores();
       getFilesByWallet(
         forView === "shared" ? undefined : walletAddress,
         forView === "shared" ? walletAddress : undefined,

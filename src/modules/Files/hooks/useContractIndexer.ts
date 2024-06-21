@@ -3,6 +3,7 @@ import getUserByWalletQuery from "../FileUpload/query/getUserByWalletQuery";
 import { FetchFilesResponse, FileDetails } from "../FileDisplayer/types";
 import getUserSubscriptionByWalletQuery from "../FileUpload/query/getUserSubscriptionByWalletQuery";
 import getFileByCidQuery from "../FileUpload/query/getFileByCidQuery";
+import searchUsernamesQuery from "../FileUpload/query/searchUsernamesQuery";
 
 const indexerUrl = process.env.NEXT_PUBLIC_INDEXER_SERVICE_URL;
 const useContractIndexer = () => {
@@ -92,6 +93,57 @@ const useContractIndexer = () => {
       return {
         success: true,
         data: responseBody.data.getUser,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Error fetching user: ${(error as any)?.message || ""}`,
+      };
+    }
+  };
+
+  const searchUsernames = async ({
+    username,
+    limit = 5,
+  }: {
+    username: string;
+    limit?: number;
+  }): Promise<{
+    success: boolean;
+    error?: string;
+    data?: UserInformationData[];
+  }> => {
+    try {
+      const response = await fetch(`${indexerUrl}/graphql`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: searchUsernamesQuery(username, limit),
+        }),
+        cache: "no-cache",
+      });
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: `Network response was not ok: ${response.statusText}`,
+        };
+      }
+
+      const responseBody = await response.json();
+
+      if (responseBody.errors) {
+        return {
+          success: false,
+          error: `GraphQL error: ${responseBody.errors.map((e) => e.message).join(", ")}`,
+        };
+      }
+
+      return {
+        success: true,
+        data: responseBody.data.searchUsernames,
       };
     } catch (error) {
       return {
@@ -276,6 +328,8 @@ const useContractIndexer = () => {
   async function manualSyncUserCreation(userData: {
     user_solana?: string;
     did_public_address?: string;
+    username?: string;
+    did_public_key?: string;
   }) {
     try {
       const response = await fetch(`${indexerUrl}/graphql`, {
@@ -332,6 +386,7 @@ const useContractIndexer = () => {
     manualSyncFileCreation,
     manualSyncUserCreation,
     getUserSubscriptionByWallet,
+    searchUsernames,
   };
 };
 

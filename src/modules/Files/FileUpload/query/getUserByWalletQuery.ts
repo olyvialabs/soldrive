@@ -4,6 +4,8 @@ const getUserByWalletQuery = (walletAddress: string) => `
         id
         user_solana
         did_public_address
+        username
+        did_public_key
     }
 }
 `;

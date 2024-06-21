@@ -12,15 +12,19 @@ const useInitializeFilesStores = () => {
   const { clearStore: clearUserFilesStore } = useUserFilesStore();
 
   const clearAllStores = () => {
+    clearFileRelatedStores();
     changeAuthModalVisibility(true);
-    clearUserFilesStore();
-    setPreviewFileDetails({ fileContent: null, fileId: "", isVisible: false });
-    changeForcedUploadFiles(false);
     setUserInformationData(null);
     setSubscriptionTimestamp(0);
   };
 
-  return { clearAllStores };
+  const clearFileRelatedStores = () => {
+    clearUserFilesStore();
+    setPreviewFileDetails({ fileContent: null, fileId: "", isVisible: false });
+    changeForcedUploadFiles(false);
+  };
+
+  return { clearAllStores, clearFileRelatedStores };
 };
 
 export { useInitializeFilesStores };

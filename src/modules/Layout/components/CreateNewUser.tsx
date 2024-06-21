@@ -21,6 +21,7 @@ import ipfs from "~/modules/Files/FileUpload/components/utils/IpfsConfiguration"
 import useContractIndexer from "~/modules/Files/hooks/useContractIndexer";
 import { toast } from "sonner";
 import useGetAuthenticatedWalletKeys from "~/modules/User/hooks/useGetAuthenticatedWalletKeys";
+import { DownloadIcon, HandIcon, InputIcon } from "@radix-ui/react-icons";
 
 const PROGRAM_ID = new PublicKey(env.NEXT_PUBLIC_USERS_CONTRACT_ADDRESS);
 
@@ -63,8 +64,11 @@ const CreateUserButton: React.FC = () => {
     setUserInformationData,
     setSubscriptionTimestamp,
   } = useAuthStore();
-  const { manualSyncUserCreation, getUserSubscriptionByWallet } =
-    useContractIndexer();
+  const {
+    manualSyncUserCreation,
+    getUserSubscriptionByWallet,
+    searchUsernames,
+  } = useContractIndexer();
   const { generateUniqueCredentials } = useGetAuthenticatedWalletKeys();
 
   const createNewDidUserCredentials = async () => {
@@ -89,7 +93,7 @@ const CreateUserButton: React.FC = () => {
       didPublicKey: publicKeyString,
     };
     const { cid } = await ipfs.add(JSON.stringify(didDocument));
-    return { cid: cid.toString() };
+    return { cid: cid.toString(), username, didPublicKey: publicKeyString };
   };
 
   const createUser = async () => {
@@ -105,6 +109,7 @@ const CreateUserButton: React.FC = () => {
     if (!walletPublicKey) {
       toast("Solana Wallet not found", {
         description: "Please install Phantom or similar wallet to continue",
+        icon: <DownloadIcon />,
       });
       return;
     }
@@ -112,11 +117,32 @@ const CreateUserButton: React.FC = () => {
     if (!username) {
       toast("Username field empty", {
         description: "Please add a username to continue",
+        icon: <InputIcon />,
       });
       return;
     }
 
     setIsLoading(true);
+
+    // tsett
+    const foundUserWithUsername = await searchUsernames({ username, limit: 1 });
+    if (!foundUserWithUsername?.success || foundUserWithUsername?.error) {
+      toast("Error retrieving username information", {
+        description: `There was an issue retrieving user's username`,
+        icon: <HandIcon />,
+      });
+      setIsLoading(false);
+      return;
+    }
+    if (foundUserWithUsername?.data?.length) {
+      const theOtherWallet = foundUserWithUsername.data[0]?.user_solana;
+      toast("Username already taken", {
+        description: `Change it or Fight with ${theOtherWallet} for it`,
+        icon: <HandIcon />,
+      });
+      setIsLoading(false);
+      return;
+    }
     const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
     const result = await createNewDidUserCredentials();
@@ -124,6 +150,7 @@ const CreateUserButton: React.FC = () => {
       toast("Error creating user DID", {
         description:
           "There was an issue generating your DID, please contact support",
+        icon: <DownloadIcon />,
       });
       return;
     }
@@ -159,7 +186,11 @@ const CreateUserButton: React.FC = () => {
       );
       const responses = await Promise.allSettled([
         connection.confirmTransaction(signature, "confirmed"),
-        manualSyncUserCreation(userData),
+        manualSyncUserCreation({
+          ...userData,
+          username: result?.username!,
+          did_public_key: result?.didPublicKey!,
+        }),
         getUserSubscriptionByWallet({
           walletAddress: wallet?.publicKey?.toString()!,
         }),

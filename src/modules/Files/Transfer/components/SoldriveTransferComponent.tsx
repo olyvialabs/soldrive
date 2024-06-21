@@ -1,24 +1,20 @@
 "use client";
 
-import { useFilesStore } from "../../../Store/FileDisplayLayout/store";
 import { OnboardingDialog } from "~/modules/Layout/components/OnboardingDialog";
 import { useAuthStore } from "~/modules/Store/Auth/store";
 import { useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { AllSolanaContent } from "~/modules/Auth/components/WalletConnectionButton";
-import { useUserFilesStore } from "~/modules/Store/UserFiles/store";
 import SoldriveTransferInnerContent from "./SoldriveTransferInnerContent";
 import useGetAllFilesByWalletIndexer from "../../FileDisplayer/hooks/useGetAllFilesByWalletIndexer";
 import { useInitializeFilesStores } from "../../FileDisplayer/hooks/useInitializeFilesStores";
 
 const SoldriveTransferComponent = () => {
-  const { shouldShowAuthModal, userInformation, changeAuthModalVisibility } =
-    useAuthStore();
+  const { shouldShowAuthModal, userInformation } = useAuthStore();
   const wallet = useWallet();
   const { getFilesByWallet } = useGetAllFilesByWalletIndexer();
-  const { clearAllStores } = useInitializeFilesStores();
+  const { clearFileRelatedStores } = useInitializeFilesStores();
   useEffect(() => {
-    clearAllStores();
+    clearFileRelatedStores();
   }, []);
 
   useEffect(() => {

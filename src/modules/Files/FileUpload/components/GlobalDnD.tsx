@@ -11,7 +11,7 @@ import { useSaveFileDataOnChain } from "./FileUploadButton";
 import { AllSolanaContent } from "~/modules/Auth/components/WalletConnectionButton";
 import { toast } from "sonner";
 import { useRouter } from "next/router";
-import { useAuthStore } from "~/modules/Store/Auth/store";
+import { UserInformationData, useAuthStore } from "~/modules/Store/Auth/store";
 import { useUserFilesStore } from "~/modules/Store/UserFiles/store";
 import useGetAllFilesByWalletIndexer from "../../FileDisplayer/hooks/useGetAllFilesByWalletIndexer";
 import useContractIndexer from "../../hooks/useContractIndexer";
@@ -48,11 +48,11 @@ export const useEncryptionFileEncryption = () => {
     content: any,
     fileName: string,
     size: number,
-    destinationWallet?: string,
+    destinationUser?: UserInformationData,
   ) => {
     const myUserWallet = wallet.publicKey?.toString();
 
-    const myUserDid = userInformation?.did_public_address!;
+    destinationUser = destinationUser || userInformation!;
     // let otherUserDid = userInformation?.did_public_address!;
     // const isDestinationOtherAddress = myUserWallet !== destinationWallet;
     // if (isDestinationOtherAddress) {
@@ -68,18 +68,26 @@ export const useEncryptionFileEncryption = () => {
     //   }
     //   otherUserDid = otherAddrInfo.data?.did_public_address!;
     // }
-    const ipfsFileContentChunks = [];
-    for await (const chunk of ipfsClient.cat(myUserDid)) {
-      ipfsFileContentChunks.push(chunk);
-    }
-    const walletIpfsFileContent = Buffer.concat(ipfsFileContentChunks);
-    const fileContentJson = JSON.parse(walletIpfsFileContent.toString());
+
+    // const ipfsFileContentChunks = [];
+    // for await (const chunk of ipfsClient.cat(thePublicAddress)) {
+    //   ipfsFileContentChunks.push(chunk);
+    // }
+    // const walletIpfsFileContent = Buffer.concat(ipfsFileContentChunks);
+    // const fileContentJson = JSON.parse(walletIpfsFileContent.toString());
 
     const { privateKeyString } = await generateUniqueCredentials();
     // Decode the private key string
     const privateKey = bs58.decode(privateKeyString!);
     // Use the first 32 bytes of the private key as the shared secret
     const secretKey = privateKey.slice(0, 32);
+    // it's important to encode from array from DID
+    // const destinationPublicKey = bs58.encode(fileContentJson.didPublicKey);
+    console.log({ destinationUser, userInformation });
+    console.log({ destinationUser, userInformation });
+    const publicKey = bs58
+      .decode(destinationUser?.did_public_key!)
+      .slice(0, 32);
 
     // Encrypt the file content
     const encoder = new TextEncoder();
@@ -91,16 +99,13 @@ export const useEncryptionFileEncryption = () => {
       // Otherwise, assume it's a string and encode it
       encodedMessage = encoder.encode(content);
     }
-
-    // @TODO:
-    // This key must be encrypted based on b58
-    // instead of TextEncoder
-    const destinationPublicKey = encoder.encode(fileContentJson);
-    const nonce = nacl.randomBytes(nacl.secretbox.nonceLength);
-    const encryptedMessage = nacl.secretbox(
+    // key is already as b58
+    // as that's the format when DID is created
+    const nonce = nacl.randomBytes(nacl.box.nonceLength);
+    const encryptedMessage = nacl.box(
       encodedMessage,
       nonce,
-      ///destinationPublicKey,
+      publicKey,
       secretKey,
     );
 
@@ -119,7 +124,7 @@ export const useEncryptionFileEncryption = () => {
       typ: "file",
       weight: size,
       from: myUserWallet!,
-      to: destinationWallet || myUserWallet!,
+      to: destinationUser?.user_solana!, //destinationWallet || myUserWallet!,
     };
     await mintToken(newToken);
     toast(`New file ${fileName} created.`);
