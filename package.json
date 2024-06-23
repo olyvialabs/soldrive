@@ -43,6 +43,7 @@
     "crypto": "^1.0.1",
     "dids": "^5.0.2",
     "ecies-geth": "^1.7.1",
+    "eciesjs": "^0.4.7",
     "firebase": "^10.10.0",
     "ipfs-http-client": "^60.0.1",
     "jwt-decode": "^4.0.0",

@@ -25,7 +25,7 @@ export function AppLeftSidenav({ links, currentSelected }: NavProps) {
       <nav className="grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2">
         {links.map((link, index) => (
           <div
-            key={index}
+            key={`${index}-${link.title}`}
             className={cn(
               buttonVariants({ variant: link.variant, size: "lg" }),
               currentSelected === link.key && "bg-muted",

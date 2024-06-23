@@ -18,7 +18,7 @@ const sidenavItems = [
     url: "/app",
   },
   {
-    title: "Shared",
+    title: "Shared with me",
     icon: PersonIcon,
     variant: "default",
     key: "shared",

@@ -12,7 +12,6 @@ import {
 } from "~/components/ui/context-menu";
 import { useFilesStore } from "../../../Store/FileDisplayLayout/store";
 import useDownloadFiles from "../hooks/useDownloadFiles";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { useState } from "react";
 import { FileSharingDialog } from "./FileSharingDialog";
 
@@ -27,13 +26,9 @@ export function FilePreviewItemContextMenu({
   allFiles: any;
   onOpenChange?: (open: boolean) => void;
 }) {
-  const wallet = useWallet();
   const { fileSelection, setPreviewFileDetails } = useFilesStore();
   const [isShareDialogVisible, setIsShareDialogVisible] = useState(false);
-  const { downloadFiles } = useDownloadFiles(
-    wallet?.publicKey?.toString()! || "",
-    allFiles,
-  );
+  const { downloadFiles } = useDownloadFiles();
 
   return (
     <>
@@ -46,7 +41,9 @@ export function FilePreviewItemContextMenu({
         <ContextMenuContent className="w-64">
           <ContextMenuItem
             inset
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
               setIsShareDialogVisible(true);
             }}
           >
@@ -54,7 +51,9 @@ export function FilePreviewItemContextMenu({
           </ContextMenuItem>
           <ContextMenuItem
             inset
-            onClick={async () => {
+            onClick={async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
               await downloadFiles();
             }}
           >
@@ -65,7 +64,7 @@ export function FilePreviewItemContextMenu({
         </ContextMenuItem> */}
           <ContextMenuItem
             inset
-            onClick={() => {
+            onClick={(e) => {
               // if this enters, it means it's not disabled, which meant's
               // there's only one file selected
               setPreviewFileDetails({

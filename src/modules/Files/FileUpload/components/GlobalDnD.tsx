@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import styled from "styled-components";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -6,7 +6,7 @@ import ipfsClient from "./utils/IpfsConfiguration";
 import nacl from "tweetnacl";
 import bs58 from "bs58";
 import crypto from "crypto";
-import { FileIcon } from "@radix-ui/react-icons";
+import { FileIcon, FileMinusIcon, ReloadIcon } from "@radix-ui/react-icons";
 import { useSaveFileDataOnChain } from "./FileUploadButton";
 import { AllSolanaContent } from "~/modules/Auth/components/WalletConnectionButton";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ import useContractIndexer from "../../hooks/useContractIndexer";
 import { useFilesStore } from "~/modules/Store/FileDisplayLayout/store";
 import { getIsUserSubscribed } from "~/modules/Store/Auth/selectors";
 import useGetAuthenticatedWalletKeys from "~/modules/User/hooks/useGetAuthenticatedWalletKeys";
+import { encrypt as eciesEncrypt } from "eciesjs";
 
 const getColor = (props) => {
   if (props.isDragAccept) {
@@ -76,18 +77,22 @@ export const useEncryptionFileEncryption = () => {
     // const walletIpfsFileContent = Buffer.concat(ipfsFileContentChunks);
     // const fileContentJson = JSON.parse(walletIpfsFileContent.toString());
 
-    const { privateKeyString } = await generateUniqueCredentials();
+    const { privateKeyString, publicKeyString } =
+      await generateUniqueCredentials();
+    console.log({ privateKeyString, publicKeyString });
+    console.log({ privateKeyString, publicKeyString });
     // Decode the private key string
-    const privateKey = bs58.decode(privateKeyString!);
+    //const privateKey = bs58.decode(privateKeyString!);
     // Use the first 32 bytes of the private key as the shared secret
-    const secretKey = privateKey.slice(0, 32);
+    //const secretKey = privateKey.slice(0, 32);
     // it's important to encode from array from DID
     // const destinationPublicKey = bs58.encode(fileContentJson.didPublicKey);
-    console.log({ destinationUser, userInformation });
-    console.log({ destinationUser, userInformation });
-    const publicKey = bs58
-      .decode(destinationUser?.did_public_key!)
-      .slice(0, 32);
+    // console.log({ destinationUser, userInformation });
+    // console.log({ destinationUser, userInformation });
+    const publicKey = destinationUser?.did_public_key!;
+    // bs58
+    //   .decode(destinationUser?.did_public_key!)
+    //   .slice(0, 32);
 
     // Encrypt the file content
     const encoder = new TextEncoder();
@@ -99,23 +104,24 @@ export const useEncryptionFileEncryption = () => {
       // Otherwise, assume it's a string and encode it
       encodedMessage = encoder.encode(content);
     }
+    const encryptedMessage = eciesEncrypt(publicKey, encodedMessage);
     // key is already as b58
     // as that's the format when DID is created
-    const nonce = nacl.randomBytes(nacl.box.nonceLength);
-    const encryptedMessage = nacl.box(
-      encodedMessage,
-      nonce,
-      publicKey,
-      secretKey,
-    );
+    // const nonce = nacl.randomBytes(nacl.secretbox.nonceLength);
+    // const encryptedMessage = nacl.secretbox(
+    //   encodedMessage,
+    //   nonce,
+    //   publicKey,
+    //   //secretKey,
+    // );
 
     // Combine the nonce and the encrypted message
-    const combined = new Uint8Array(nonce.length + encryptedMessage.length);
-    combined.set(nonce);
-    combined.set(encryptedMessage, nonce.length);
+    // const combined = new Uint8Array(nonce.length + encryptedMessage.length);
+    // combined.set(nonce);
+    // combined.set(encryptedMessage, nonce.length);
 
     // Upload the combined encrypted data to IPFS
-    const added = await ipfsClient.add(combined);
+    const added = await ipfsClient.add(encryptedMessage);
 
     const newToken = {
       name: fileName,
@@ -140,7 +146,7 @@ export const useEncryptionFileEncryption = () => {
 function GlobalDnD() {
   const { encryptFile } = useEncryptionFileEncryption();
   const isSubscribed = useAuthStore(getIsUserSubscribed);
-
+  const [isLoading, setIsLoading] = useState(false);
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } =
     useDropzone({
       onDrop: async ([file]) => {
@@ -159,15 +165,22 @@ function GlobalDnD() {
         reader.onload = async function (e) {
           const contentAsArrayBuffer = e.target?.result;
           if (contentAsArrayBuffer) {
-            const contentAsUint8Array =
-              typeof contentAsArrayBuffer === "string"
-                ? contentAsArrayBuffer
-                : new Uint8Array(contentAsArrayBuffer);
-            await encryptFile(
-              contentAsUint8Array,
-              file?.name || "Unknown",
-              file?.size || 0,
-            );
+            try {
+              setIsLoading(true);
+              const contentAsUint8Array =
+                typeof contentAsArrayBuffer === "string"
+                  ? contentAsArrayBuffer
+                  : new Uint8Array(contentAsArrayBuffer);
+              await encryptFile(
+                contentAsUint8Array,
+                file?.name || "Unknown",
+                file?.size || 0,
+              );
+            } catch (error) {
+              console.log({ error });
+            } finally {
+              setIsLoading(false);
+            }
           }
         };
         reader.readAsArrayBuffer(file);
@@ -179,19 +192,30 @@ function GlobalDnD() {
     <div className="container">
       <Container
         {...getRootProps({ isFocused, isDragAccept, isDragReject })}
-        className="relative flex min-h-[40vh] w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-100 border-gray-200 p-12 text-center dark:border-gray-800"
+        className="relative flex min-h-[40vh] w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-100 border-gray-200 p-12 dark:border-gray-800"
         style={{
           backgroundImage: "radial-gradient(var(--gradient-9))",
         }}
       >
         <input {...getInputProps()} />
-        <FileIcon className="h-8 w-8" />{" "}
-        <span className="text-sm font-semibold tracking-wide">
-          Drag and drop your files here.{" "}
-          {isSubscribed
-            ? "Unlimited size for PRO plan"
-            : "Up to 10MB for free plan"}
-        </span>
+        {isLoading ? (
+          <ReloadIcon className="h-12 w-12 animate-spin" />
+        ) : (
+          <div className="flex flex-row gap-2">
+            <FileIcon className="h-8 w-8" />
+            <div className="flex flex-1 flex-col">
+              <span className="text-sm font-semibold tracking-wide">
+                Drag and drop your files here.{" "}
+              </span>
+              <span>
+                <b className="text-purple-500">Current plan: </b>
+                {isSubscribed
+                  ? "unlimited size with PRO plan"
+                  : "up to 10MB for free plan"}
+              </span>
+            </div>
+          </div>
+        )}
       </Container>
     </div>
   );

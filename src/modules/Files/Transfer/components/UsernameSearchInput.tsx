@@ -45,7 +45,9 @@ export function UsernameSearchInput({
   return (
     <>
       <div
-        onClick={() => {
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
           setOpen(true);
         }}
         className="flex cursor-pointer flex-row items-center space-x-2 space-y-1.5 rounded-lg border p-4 hover:bg-accent"
@@ -88,14 +90,16 @@ export function UsernameSearchInput({
           {currentDisplayItems.map((item) => {
             return (
               <CommandItem
-                onSelect={() => {
+                onSelect={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   setCurrentUser(item);
                   setOpen(false);
                 }}
                 value={item.username}
               >
                 <div
-                  className="w-full cursor-pointer"
+                  className="flex w-full cursor-pointer flex-row"
                   onClick={() => {
                     setCurrentUser(item);
                     setOpen(false);

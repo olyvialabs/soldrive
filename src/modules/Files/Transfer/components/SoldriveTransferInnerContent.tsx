@@ -62,8 +62,9 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
   const [selectedFile, setSelectedFile] = useState<{
     name: string;
     size: number;
-  }>(null);
+  } | null>(null);
   const { getUserByWallet } = useContractIndexer();
+
   const [destinationUser, setDestinationUser] =
     useState<UserInformationData | null>(null);
   const { encryptFile } = useEncryptionFileEncryption();
@@ -92,6 +93,8 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
       });
       return;
     }
+    console.log({ destinationUser });
+    console.log({ destinationUser });
     if (!destinationUser) {
       toast("Add a destination wallet address to continue", {
         position: "top-center",
@@ -101,18 +104,14 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
     }
 
     if (forView === "dialog") {
+      setIsUploadingFile(true);
       const { privateKeyString } = await generateUniqueCredentials();
       let promises = [];
       for (const fileId of fileSelection.filesSelected) {
         promises.push(
-          downloadSpecificFile(
-            fileId,
-            userInformation?.did_public_key!,
-            privateKeyString,
-            {
-              returnBlob: true,
-            },
-          ),
+          downloadSpecificFile(fileId, privateKeyString, {
+            returnBlob: true,
+          }),
         );
       }
       const downloadPromises = await Promise.allSettled(promises);
@@ -283,7 +282,9 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                       setIsUpgradeModalOpened(true);
                     }}
                   >
@@ -319,7 +320,11 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
                 loading={isUploadingFile}
                 disabled={isUploadingFile}
                 className="w-full text-white"
-                onClick={() => sendFile()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  sendFile();
+                }}
               >
                 Send
               </Button>

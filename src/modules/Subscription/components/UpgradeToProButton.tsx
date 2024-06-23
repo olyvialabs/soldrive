@@ -9,6 +9,9 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import {
+  createAssociatedTokenAccountInstruction,
+  createTransferInstruction,
+  getAssociatedTokenAddress,
   getOrCreateAssociatedTokenAccount,
   mintTo,
   TOKEN_PROGRAM_ID,
@@ -17,6 +20,7 @@ import { BN } from "bn.js";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Button } from "~/components/ui/button";
 import { Buffer } from "buffer";
+import { toast } from "sonner";
 
 const PROGRAM_ID = new PublicKey(
   "DQozU1hdPhGKPPL3dWonTmfe6w6uydqudrbspmkpfaVW",
@@ -27,11 +31,16 @@ const TOKEN_MINT = new PublicKey(
 
 const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
   const wallet = useWallet();
-  const toPublicKey = wallet.publicKey?.toString();
+  // public key which would be used to receive $BONK tokens
+  const toPublicKey = new PublicKey(
+    "FYMwG2PmdjMaqq1PS92TmH5ntb6UgCENZALywNCKK4XT",
+  ); // SOLDRIVE OWNER
   const amount = 190_000;
   const [isLoading, setIsLoading] = useState(false);
 
-  const transferBonkTokens = async () => {
+  const transferBonkTokens = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!wallet?.publicKey) {
       alert("Connect your wallet to continue");
       return;
@@ -43,43 +52,32 @@ const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
       const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
       // Get or create associated token accounts
-      const fromAta = await getOrCreateAssociatedTokenAccount(
-        connection,
-        wallet,
+      const fromAta = await getAssociatedTokenAddress(
         TOKEN_MINT,
         wallet.publicKey,
       );
-      const toAta = await getOrCreateAssociatedTokenAccount(
-        connection,
-        wallet,
+
+      const toAta = await getAssociatedTokenAddress(
         TOKEN_MINT,
         new PublicKey(toPublicKey),
       );
 
-      const transferAmount = new BN(amount);
-      const dataBuffer = Buffer.alloc(8);
-      dataBuffer.writeBigUInt64LE(
-        transferAmount.toArrayLike(Buffer, "le", 8),
-        0,
+      if (!fromAta.toString()) {
+        toast(`You don't have $BONKS Tokens in this account`, {
+          description: "Get some $BONKS and try again...",
+        });
+      }
+
+      const transaction = new Transaction().add(
+        createTransferInstruction(
+          fromAta,
+          toAta,
+          wallet.publicKey,
+          amount,
+          undefined,
+          PROGRAM_ID,
+        ),
       );
-
-      const instruction = new TransactionInstruction({
-        keys: [
-          { pubkey: wallet.publicKey, isSigner: true, isWritable: false },
-          { pubkey: fromAta.address, isSigner: false, isWritable: true },
-          { pubkey: toAta.address, isSigner: false, isWritable: true },
-          { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-          {
-            pubkey: SystemProgram.programId,
-            isSigner: false,
-            isWritable: false,
-          },
-        ],
-        programId: PROGRAM_ID,
-        data: dataBuffer,
-      });
-
-      const transaction = new Transaction().add(instruction);
       transaction.recentBlockhash = (
         await connection.getRecentBlockhash()
       ).blockhash;
@@ -93,26 +91,33 @@ const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
 
       await connection.confirmTransaction(txHash, "finalized");
       alert(`Transaction successful! TxHash: ${txHash}`);
+      onUpgrade?.();
     } catch (error) {
+      toast("Error processing subscription!", {
+        description: "Please contact support if this issue persist",
+      });
       console.log({ error });
       console.log({ error });
       console.error("Transaction failed", error);
     } finally {
       setIsLoading(false);
-      onUpgrade?.();
     }
   };
 
   return (
     <>
       <div className="flex w-full text-center">
-        <span>Equivalent of $5 dollars is {amount} $BONKS</span>
+        <span>
+          Equivalent of <b className="text-purple-500">$5 dollars</b> is{" "}
+          <b className="text-purple-500">{amount} $BONKS</b>
+        </span>
       </div>
 
       <Button
-        className="mt-2 w-full  text-white md:w-auto"
+        className="mt-2 flex w-full flex-1 text-white"
         loading={isLoading}
         onClick={transferBonkTokens}
+        type="button"
       >
         Upgrade to PRO with $BONK
       </Button>

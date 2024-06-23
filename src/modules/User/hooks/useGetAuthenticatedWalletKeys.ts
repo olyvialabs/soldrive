@@ -3,6 +3,7 @@ import crypto from "crypto";
 import nacl from "tweetnacl";
 import { toast } from "sonner";
 import { UNIQUE_USER_SIGNATURE_MSG_V1 } from "../constants";
+import { PrivateKey } from "eciesjs";
 
 const useGetAuthenticatedWalletKeys = () => {
   const generateUniqueCredentials = async () => {
@@ -25,18 +26,20 @@ const useGetAuthenticatedWalletKeys = () => {
       .update(signedMessage.signature)
       .digest()
       .slice(0, 32);
-    const keyPair = nacl.sign.keyPair.fromSeed(seed);
-    const publicKeyString = bs58.encode(keyPair.publicKey);
-    const privateKeyString = bs58.encode(keyPair.secretKey);
-    if (!publicKeyString || !privateKeyString) {
+    const privateKey = new PrivateKey(seed);
+
+    // const keyPair = nacl.sign.keyPair.fromSeed(seed);
+    // const publicKeyString = bs58.encode(keyPair.publicKey);
+    // const privateKeyString = bs58.encode(keyPair.secretKey);
+    if (!privateKey.publicKey.toHex()) {
       toast("There was an issue getting user credentials", {
         description: "Try again later or contact support",
         position: "top-center",
       });
     }
     return {
-      publicKeyString,
-      privateKeyString,
+      publicKeyString: privateKey.publicKey.toHex(),
+      privateKeyString: privateKey.toHex(),
       signature: signedMessage.signature,
     };
   };

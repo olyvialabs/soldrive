@@ -32,7 +32,7 @@ export function FileSelectionControls() {
     <>
       <FileSharingDialog
         open={isShareDialogVisible}
-        onOpenChange={setIsShareDialogVisible} 
+        onOpenChange={setIsShareDialogVisible}
       />
       <Menubar onClick={(e) => e.stopPropagation()}>
         <MenubarMenu>
@@ -50,7 +50,9 @@ export function FileSelectionControls() {
           <MenubarTrigger className="cursor-pointer">
             <Share2Icon
               className="mr-"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 setIsShareDialogVisible(true);
               }}
             />
@@ -59,7 +61,9 @@ export function FileSelectionControls() {
         <MenubarMenu>
           <MenubarTrigger
             className="cursor-pointer"
-            onClick={async () => {
+            onClick={async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
               await downloadFiles();
             }}
           >
@@ -78,7 +82,9 @@ export function FileSelectionControls() {
           <MenubarContent>
             <MenubarItem
               //disabled={multipleFilesSelected}
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 setIsShareDialogVisible(true);
               }}
             >
@@ -86,7 +92,9 @@ export function FileSelectionControls() {
               Share
             </MenubarItem>
             <MenubarItem
-              onClick={async () => {
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 await downloadFiles();
               }}
             >
@@ -103,7 +111,7 @@ export function FileSelectionControls() {
           </MenubarItem> */}
             <MenubarItem
               disabled={multipleFilesSelected}
-              onClick={() => {
+              onClick={(e) => {
                 // if this enters, it means it's not disabled, which meant's
                 // there's only one file selected
                 setPreviewFileDetails({

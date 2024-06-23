@@ -94,7 +94,7 @@ const MyWalletFiles = ({ forView }: { forView: "shared" | "own" }) => {
     // let's use userInformation, as when they aren't logged in it shouldn't
     // retrieve anything,
     // but when they log in, re-fire this
-    const walletAddress = userInformation?.did_public_address;
+    const walletAddress = userInformation?.user_solana;
     if (walletAddress) {
       clearFileRelatedStores();
       getFilesByWallet(
@@ -102,7 +102,7 @@ const MyWalletFiles = ({ forView }: { forView: "shared" | "own" }) => {
         forView === "shared" ? walletAddress : undefined,
       );
     }
-  }, [wallet, forView]);
+  }, [userInformation, forView]);
 
   return (
     //<AllSolanaContent>
