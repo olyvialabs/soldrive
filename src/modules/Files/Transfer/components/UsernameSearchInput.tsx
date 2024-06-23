@@ -17,8 +17,10 @@ import { PersonIcon } from "@radix-ui/react-icons";
 export function UsernameSearchInput({
   currentUser,
   setCurrentUser,
+  forView,
 }: {
   currentUser: UserInformationData | null;
+  forView: any;
   setCurrentUser: (data: UserInformationData | null) => void;
 }) {
   const [currentDisplayItems, setCurrentDisplayItems] = useState<
@@ -46,8 +48,10 @@ export function UsernameSearchInput({
     <>
       <div
         onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
+          if (forView === "dialog") {
+            e.preventDefault();
+            e.stopPropagation();
+          }
           setOpen(true);
         }}
         className="flex cursor-pointer flex-row items-center space-x-2 space-y-1.5 rounded-lg border p-4 hover:bg-accent"
@@ -91,8 +95,6 @@ export function UsernameSearchInput({
             return (
               <CommandItem
                 onSelect={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
                   setCurrentUser(item);
                   setOpen(false);
                 }}

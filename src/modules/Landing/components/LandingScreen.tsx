@@ -81,7 +81,7 @@ export const LandingScreen = () => {
                 href="/app"
                 className="rounded bg-green-500 px-3 py-2 text-white transition duration-300 hover:bg-green-600"
               >
-                Go to Dashboard
+                Go to App
               </a>
             </div>
           </div>

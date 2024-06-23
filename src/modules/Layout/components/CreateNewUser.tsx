@@ -170,14 +170,13 @@ const CreateUserButton: React.FC = () => {
       programId: PROGRAM_ID,
       data: userMetadataBuffer,
     });
-
-    let transaction = new Transaction().add(customInstruction);
-    transaction.recentBlockhash = (
-      await connection.getRecentBlockhash()
-    ).blockhash;
-    transaction.feePayer = wallet.publicKey;
-
     try {
+      let transaction = new Transaction().add(customInstruction);
+      transaction.recentBlockhash = (
+        await connection.getRecentBlockhash()
+      ).blockhash;
+      transaction.feePayer = wallet.publicKey;
+
       // The wallet's signAndSendTransaction method is used here
       let signedTransaction = await wallet.signTransaction(transaction);
       let signature = await connection.sendRawTransaction(
@@ -200,7 +199,11 @@ const CreateUserButton: React.FC = () => {
       if (response.data?.id) {
         setSubscriptionTimestamp(response?.data?.timestamp || 0);
       }
-      setUserInformationData(userData);
+      setUserInformationData({
+        ...userData,
+        username: result?.username!,
+        did_public_key: result?.didPublicKey!,
+      });
       changeAuthModalVisibility(false);
     } catch (error) {
       if (error?.message?.includes("credit")) {

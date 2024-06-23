@@ -162,20 +162,22 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
       return;
     }
 
-    const tenMB = 10_485_760;
-    if (selectedFile?.size > tenMB && !isSubscribed) {
-      toast("10 MB limit for free plan reached", {
-        description:
-          "The current file exceds the limit size for free plan, select other file.",
-        position: "top-center",
-        icon: <FileMinusIcon />,
-      });
-      return;
-    }
+    // const tenMB = 10_485_760;
+    // if (selectedFile?.size > tenMB && !isSubscribed) {
+    //   toast("10 MB limit for free plan reached", {
+    //     description:
+    //       "The current file exceds the limit size for free plan, select other file.",
+    //     position: "top-center",
+    //     icon: <FileMinusIcon />,
+    //   });
+    //   return;
+    // }
     // else, if paid, it just ignore the limit
     setIsUploadingFile(true);
     var reader = new FileReader();
     reader.onload = async function (e) {
+      console.log({ e });
+
       const contentAsArrayBuffer = e.target?.result;
       if (contentAsArrayBuffer) {
         const contentAsUint8Array =
@@ -297,6 +299,7 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
                   <UsernameSearchInput
                     setCurrentUser={setDestinationUser}
                     currentUser={destinationUser}
+                    forView={forView}
                   />
                 </div>
                 <div className="mt-2 flex flex-col">
