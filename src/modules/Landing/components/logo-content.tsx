@@ -4,8 +4,9 @@ import Logo from "~/components/general/logo";
 const LogoContent = () => {
   return (
     <Link href="/">
-      <div className="flex flex-row items-center justify-center">
+      <div className="flex cursor-pointer flex-row items-center justify-center gap-2">
         <Logo />
+        <span className="font-bold hover:underline">SOLDRIVE</span>
       </div>
     </Link>
   );

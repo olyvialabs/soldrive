@@ -4,24 +4,15 @@ import {
   PublicKey,
   clusterApiUrl,
   Transaction,
-  sendAndConfirmTransaction,
-  SystemProgram,
-  TransactionInstruction,
 } from "@solana/web3.js";
 import {
-  createAssociatedTokenAccountInstruction,
   createTransferInstruction,
   getAssociatedTokenAddress,
-  getOrCreateAssociatedTokenAccount,
-  mintTo,
-  TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { BN } from "bn.js";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Button } from "~/components/ui/button";
-import { Buffer } from "buffer";
 import { toast } from "sonner";
-
+import { BN } from "bn.js";
 const PROGRAM_ID = new PublicKey(
   "DQozU1hdPhGKPPL3dWonTmfe6w6uydqudrbspmkpfaVW",
 );
@@ -30,6 +21,7 @@ const TOKEN_MINT = new PublicKey(
 );
 
 const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
+  const { connection } = useConnection();
   const wallet = useWallet();
   // public key which would be used to receive $BONK tokens
   const toPublicKey = new PublicKey(
@@ -55,12 +47,18 @@ const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
       const fromAta = await getAssociatedTokenAddress(
         TOKEN_MINT,
         wallet.publicKey,
+        undefined,
+        PROGRAM_ID,
       );
 
       const toAta = await getAssociatedTokenAddress(
         TOKEN_MINT,
         new PublicKey(toPublicKey),
+        undefined,
+        PROGRAM_ID,
       );
+
+      console.log({ fromAta, toAta });
 
       if (!fromAta.toString()) {
         toast(`You don't have $BONKS Tokens in this account`, {
@@ -73,9 +71,9 @@ const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
           fromAta,
           toAta,
           wallet.publicKey,
-          amount,
-          undefined,
-          PROGRAM_ID,
+          new BN(amount), // * LAMPORTS_PER_SOL,
+          [], //,
+          //PROGRAM_ID,
         ),
       );
       transaction.recentBlockhash = (
@@ -97,7 +95,6 @@ const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
         description: "Please contact support if this issue persist",
       });
       console.log({ error });
-      console.log({ error });
       console.error("Transaction failed", error);
     } finally {
       setIsLoading(false);
@@ -114,6 +111,7 @@ const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
       </div>
 
       <Button
+        disabled
         className="mt-2 flex w-full flex-1 text-white"
         loading={isLoading}
         onClick={transferBonkTokens}
@@ -121,6 +119,9 @@ const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
       >
         Upgrade to PRO with $BONK
       </Button>
+      <span className="text-sm text-gray-500">
+        Subscription are currently disabled.
+      </span>
     </>
   );
 };

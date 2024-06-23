@@ -14,6 +14,7 @@ import { Skeleton } from "~/components/ui/skeleton";
 import _ from "lodash";
 import { UserInformationData } from "~/modules/Store/Auth/store";
 import { PersonIcon } from "@radix-ui/react-icons";
+import { Button } from "~/components/ui/button";
 export function UsernameSearchInput({
   currentUser,
   setCurrentUser,
@@ -48,10 +49,10 @@ export function UsernameSearchInput({
     <>
       <div
         onClick={(e) => {
-          if (forView === "dialog") {
-            e.preventDefault();
-            e.stopPropagation();
-          }
+          // if (forView === "dialog") {
+          //   e.preventDefault();
+          //   e.stopPropagation();
+          // }
           setOpen(true);
         }}
         className="flex cursor-pointer flex-row items-center space-x-2 space-y-1.5 rounded-lg border p-4 hover:bg-accent"
@@ -84,21 +85,26 @@ export function UsernameSearchInput({
             debouncedFunction(e.target.value);
           }}
         />
-        <CommandList>
+        <CommandList onSelectCapture={console.log} style={{ zIndex: 999999 }}>
           {loading && <CommandLoading>Loading users...</CommandLoading>}
           <CommandEmpty>
             {!input
               ? "Try searching, users will be listed here"
-              : "No results found."}
+              : "No results found. "}
           </CommandEmpty>
-          {currentDisplayItems.map((item) => {
+          {currentDisplayItems.map((item, index) => {
             return (
               <CommandItem
                 onSelect={(e) => {
+                  alert("a");
                   setCurrentUser(item);
                   setOpen(false);
                 }}
-                value={item.username}
+                disabled={false}
+                aria-disabled={false}
+                key={`${index}-${item.did_public_address}`}
+                value={item.did_public_address}
+                className="cursor-pointer"
               >
                 <div
                   className="flex w-full cursor-pointer flex-row"

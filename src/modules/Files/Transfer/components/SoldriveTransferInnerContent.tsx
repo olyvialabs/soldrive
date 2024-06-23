@@ -8,7 +8,6 @@ import {
   FileMinusIcon,
   FilePlusIcon,
   InputIcon,
-  PersonIcon,
   PlusCircledIcon,
 } from "@radix-ui/react-icons";
 import { Button } from "~/components/ui/button";
@@ -21,7 +20,6 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Label } from "@radix-ui/react-label";
-import { Input } from "~/components/ui/input";
 import UpgradeAccountModal from "~/modules/Subscription/components/UpgradeAccountModal";
 import { UserInformationData, useAuthStore } from "~/modules/Store/Auth/store";
 import { getIsUserSubscribed } from "~/modules/Store/Auth/selectors";
@@ -63,8 +61,6 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
     name: string;
     size: number;
   } | null>(null);
-  const { getUserByWallet } = useContractIndexer();
-
   const [destinationUser, setDestinationUser] =
     useState<UserInformationData | null>(null);
   const { encryptFile } = useEncryptionFileEncryption();
@@ -162,16 +158,17 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
       return;
     }
 
-    // const tenMB = 10_485_760;
-    // if (selectedFile?.size > tenMB && !isSubscribed) {
-    //   toast("10 MB limit for free plan reached", {
-    //     description:
-    //       "The current file exceds the limit size for free plan, select other file.",
-    //     position: "top-center",
-    //     icon: <FileMinusIcon />,
-    //   });
-    //   return;
-    // }
+    const tenMB = 10_485_760;
+    const fileSize = selectedFile?.size || 0;
+    if (fileSize > tenMB && !isSubscribed) {
+      toast("10 MB limit for free plan reached", {
+        description:
+          "The current file exceds the limit size for free plan, select other file.",
+        position: "top-center",
+        icon: <FileMinusIcon />,
+      });
+      return;
+    }
     // else, if paid, it just ignore the limit
     setIsUploadingFile(true);
     var reader = new FileReader();
