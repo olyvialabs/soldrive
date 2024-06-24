@@ -140,7 +140,7 @@ const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
         .rpc();
 
       await connection.confirmTransaction(txHash, "finalized");
-      toast("Thank you! You are subscribed now" {
+      toast("Thank you! You are subscribed now", {
         description: "You paid for a one month subscription",
       });
       console.log(`Transaction successful! TxHash: ${txHash}`);
