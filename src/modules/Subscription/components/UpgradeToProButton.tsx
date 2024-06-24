@@ -1,18 +1,15 @@
 import React, { useState } from "react";
+import { Connection, PublicKey, clusterApiUrl } from "@solana/web3.js";
 import {
-  Connection,
-  PublicKey,
-  clusterApiUrl,
-  Transaction,
-} from "@solana/web3.js";
-import {
-  createTransferInstruction,
-  getAssociatedTokenAddress,
+  getOrCreateAssociatedTokenAccount,
+  TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { Button } from "~/components/ui/button";
-import { toast } from "sonner";
 import { BN } from "bn.js";
+import * as anchor from "@project-serum/anchor";
+import { toast } from "sonner";
+
 const PROGRAM_ID = new PublicKey(
   "DQozU1hdPhGKPPL3dWonTmfe6w6uydqudrbspmkpfaVW",
 );
@@ -20,20 +17,85 @@ const TOKEN_MINT = new PublicKey(
   "9GBNjXFfsuoTrrQDRVaV9xCDQwzpWSGJuwMjLwb8RXAY",
 );
 
-const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
-  const { connection } = useConnection();
-  const wallet = useWallet();
-  // public key which would be used to receive $BONK tokens
-  const toPublicKey = new PublicKey(
-    "FYMwG2PmdjMaqq1PS92TmH5ntb6UgCENZALywNCKK4XT",
-  ); // SOLDRIVE OWNER
-  const amount = 190_000;
-  const [isLoading, setIsLoading] = useState(false);
+const idl = {
+  version: "0.1.0",
+  name: "bonk_suscription",
+  instructions: [
+    {
+      name: "transferLamports",
+      accounts: [
+        {
+          name: "from",
+          isMut: true,
+          isSigner: true,
+        },
+        {
+          name: "to",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "systemProgram",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "amount",
+          type: "u64",
+        },
+      ],
+    },
+    {
+      name: "transferSplTokens",
+      accounts: [
+        {
+          name: "from",
+          isMut: false,
+          isSigner: true,
+        },
+        {
+          name: "fromAta",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "toAta",
+          isMut: true,
+          isSigner: false,
+        },
+        {
+          name: "tokenProgram",
+          isMut: false,
+          isSigner: false,
+        },
+        {
+          name: "clock",
+          isMut: false,
+          isSigner: false,
+        },
+      ],
+      args: [
+        {
+          name: "amount",
+          type: "u64",
+        },
+      ],
+    },
+  ],
+  metadata: {
+    address: "DQozU1hdPhGKPPL3dWonTmfe6w6uydqudrbspmkpfaVW",
+  },
+};
 
-  const transferBonkTokens = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!wallet?.publicKey) {
+const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
+  const wallet = useWallet();
+  const [isLoading, setIsLoading] = useState(false);
+  const amount = new BN(190_000); // TBD HOW much to send later,
+
+  const transferBonkTokens = async () => {
+    if (!wallet || !wallet.publicKey) {
       alert("Connect your wallet to continue");
       return;
     }
@@ -42,86 +104,78 @@ const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
 
     try {
       const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+      const provider = new anchor.AnchorProvider(connection, wallet, {
+        preflightCommitment: "confirmed",
+      });
+      anchor.setProvider(provider);
 
-      // Get or create associated token accounts
-      const fromAta = await getAssociatedTokenAddress(
+      const program = new anchor.Program(idl, PROGRAM_ID, provider);
+
+      const fromAta = await getOrCreateAssociatedTokenAccount(
+        connection,
+        wallet?.publicKey,
         TOKEN_MINT,
         wallet.publicKey,
-        undefined,
-        PROGRAM_ID,
       );
-
-      const toAta = await getAssociatedTokenAddress(
+      const toAta = await getOrCreateAssociatedTokenAccount(
+        connection,
+        wallet?.publicKey,
         TOKEN_MINT,
-        new PublicKey(toPublicKey),
-        undefined,
-        PROGRAM_ID,
+        new PublicKey("FYMwG2PmdjMaqq1PS92TmH5ntb6UgCENZALywNCKK4XT"),
       );
 
-      console.log({ fromAta, toAta });
+      console.log("fromAta:", fromAta.address.toBase58());
+      console.log("toAta:", toAta.address.toBase58());
 
-      if (!fromAta.toString()) {
-        toast(`You don't have $BONKS Tokens in this account`, {
-          description: "Get some $BONKS and try again...",
-        });
-      }
-
-      const transaction = new Transaction().add(
-        createTransferInstruction(
-          fromAta,
-          toAta,
-          wallet.publicKey,
-          new BN(amount), // * LAMPORTS_PER_SOL,
-          [], //,
-          //PROGRAM_ID,
-        ),
-      );
-      transaction.recentBlockhash = (
-        await connection.getRecentBlockhash()
-      ).blockhash;
-      transaction.feePayer = wallet.publicKey;
-
-      const signedTransaction = await wallet.signTransaction(transaction);
-      const txHash = await connection.sendRawTransaction(
-        signedTransaction.serialize(),
-        { skipPreflight: false, preflightCommitment: "confirmed" },
-      );
+      const txHash = await program?.methods
+        .transferSplTokens(amount)
+        .accounts({
+          from: wallet.publicKey,
+          fromAta: fromAta.address,
+          toAta: toAta.address,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+        })
+        .signers([]) // No additional signers needed
+        .rpc();
 
       await connection.confirmTransaction(txHash, "finalized");
-      alert(`Transaction successful! TxHash: ${txHash}`);
-      onUpgrade?.();
+      toast("Thank you! You are subscribed now" {
+        description: "You paid for a one month subscription",
+      });
+      console.log(`Transaction successful! TxHash: ${txHash}`);
     } catch (error) {
+      console.error("Transaction failed", error);
       toast("Error processing subscription!", {
         description: "Please contact support if this issue persist",
       });
-      console.log({ error });
-      console.error("Transaction failed", error);
+      if (error?.logs) {
+        console.log("Transaction logs:", error.logs);
+      }
+      if (error?.message) {
+        console.log(`Transaction failed: ${error.message}`);
+      } else {
+        console.log("Transaction failed");
+      }
     } finally {
       setIsLoading(false);
+      onUpgrade?.();
     }
   };
 
   return (
     <>
       <div className="flex w-full text-center">
-        <span>
-          Equivalent of <b className="text-purple-500">$5 dollars</b> is{" "}
-          <b className="text-purple-500">{amount} $BONKS</b>
-        </span>
+        <span>Equivalent of $5 dollars is {amount.toString()} $BONKS</span>
       </div>
 
       <Button
-        disabled
-        className="mt-2 flex w-full flex-1 text-white"
+        className="mt-2 w-full text-white md:w-auto"
         loading={isLoading}
         onClick={transferBonkTokens}
-        type="button"
       >
         Upgrade to PRO with $BONK
       </Button>
-      <span className="text-sm text-gray-500">
-        Subscription are currently disabled.
-      </span>
     </>
   );
 };
