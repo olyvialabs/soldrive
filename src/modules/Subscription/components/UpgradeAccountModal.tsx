@@ -28,7 +28,7 @@ export const UpgradeAccountContent = ({
           <div className="mt-4 space-y-2">
             <div className="flex items-center gap-2">
               <CheckIcon className="h-5 w-5 text-green-500" />
-              <span>100 MB file upload limit</span>
+              <span>10 MB file upload limit</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckIcon className="h-5 w-5 text-green-500" />
@@ -101,7 +101,11 @@ export const UpgradeAccountContent = ({
               });
               // @TODO: validate timestamp of 30 days is not reached yet
               if (response.data?.id) {
-                setSubscriptionTimestamp(response?.data?.timestamp || 0);
+                setSubscriptionTimestamp(
+                  subscriptionResult.data?.timestamp
+                    ? parseInt(subscriptionResult.data?.timestamp)
+                    : 0,
+                );
               }
               onUpgrade?.();
             }}

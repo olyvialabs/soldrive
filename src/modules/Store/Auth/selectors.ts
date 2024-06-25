@@ -1,19 +1,16 @@
 import { AuthStore } from "./store";
 
 const getIsUserSubscribed = (data: AuthStore) => {
-  console.log({
-    data,
-    yes: !!data.subscriptionTimestamp && data.subscriptionTimestamp > 0,
-  });
-  console.log({
-    data,
-    yes: !!data.subscriptionTimestamp && data.subscriptionTimestamp > 0,
-  });
-  console.log({
-    data,
-    yes: !!data.subscriptionTimestamp && data.subscriptionTimestamp > 0,
-  });
-  return !!data.subscriptionTimestamp && data.subscriptionTimestamp > 0;
+  if (!data.subscriptionTimestamp || data.subscriptionTimestamp === 0) {
+    return false;
+  }
+
+  const inputDate = new Date(data.subscriptionTimestamp);
+  const currentDate = new Date();
+  const differenceInTime = currentDate - inputDate;
+  const differenceInDays = differenceInTime / (1000 * 60 * 60 * 24);
+
+  return differenceInDays <= 30;
 };
 
 export { getIsUserSubscribed };

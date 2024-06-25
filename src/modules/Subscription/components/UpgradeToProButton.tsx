@@ -9,6 +9,7 @@ import { Button } from "~/components/ui/button";
 import { BN } from "bn.js";
 import * as anchor from "@project-serum/anchor";
 import { toast } from "sonner";
+import useContractIndexer from "~/modules/Files/hooks/useContractIndexer";
 
 const PROGRAM_ID = new PublicKey(
   "DQozU1hdPhGKPPL3dWonTmfe6w6uydqudrbspmkpfaVW",
@@ -93,7 +94,7 @@ const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
   const wallet = useWallet();
   const [isLoading, setIsLoading] = useState(false);
   const amount = new BN(190_000); // TBD HOW much to send later,
-
+  const { manualSyncSubscriptionCreation } = useContractIndexer();
   const transferBonkTokens = async () => {
     if (!wallet || !wallet.publicKey) {
       alert("Connect your wallet to continue");
@@ -140,6 +141,9 @@ const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
         .rpc();
 
       await connection.confirmTransaction(txHash, "finalized");
+      await manualSyncSubscriptionCreation({
+        walletAddress: wallet?.publicKey.toString(),
+      });
       toast("Thank you! You are subscribed now", {
         description: "You paid for a one month subscription",
       });

@@ -379,12 +379,66 @@ const useContractIndexer = () => {
     }
   }
 
+  async function manualSyncSubscriptionCreation(subscriptionQueryData: {
+    walletAddress: string;
+  }) {
+    try {
+      const response = await fetch(`${indexerUrl}/graphql`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: `
+            {
+              manualSyncSubscriptionCreation(${Object.entries(
+                subscriptionQueryData,
+              )
+                .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+                .join(", ")}) {
+                  result
+              }
+            }
+          `,
+        }),
+        cache: "no-cache",
+      });
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: `Network response was not ok: ${response.statusText}`,
+        };
+      }
+
+      const responseBody = await response.json();
+
+      if (responseBody.errors) {
+        return {
+          success: false,
+          error: `GraphQL error: ${responseBody.errors.map((e: { message: string }) => e.message).join(", ")}`,
+        };
+      }
+
+      return {
+        success: true,
+        data: responseBody.data.manualSyncSubscriptionCreation,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Error syncing user: ${(error as any)?.message || ""}`,
+      };
+    }
+  }
+
   return {
     getFileByCid,
     getUserByWallet,
     fetchFilesFromWallet,
     manualSyncFileCreation,
     manualSyncUserCreation,
+    manualSyncSubscriptionCreation,
     getUserSubscriptionByWallet,
     searchUsernames,
   };

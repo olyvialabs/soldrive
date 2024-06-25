@@ -25,8 +25,12 @@ const OnboardingDialogContent = () => {
   const [errorRetrievalMsg, setErrorRetrievalMsg] = useState("");
   const [retryingLoading, setRetryingLoading] = useState(false);
   const [shouldShowCreateDid, setShouldShowCreateDid] = useState(false);
-  const { getUserByWallet } = useContractIndexer();
-  const { changeAuthModalVisibility, setUserInformationData } = useAuthStore();
+  const { getUserByWallet, getUserSubscriptionByWallet } = useContractIndexer();
+  const {
+    changeAuthModalVisibility,
+    setUserInformationData,
+    setSubscriptionTimestamp,
+  } = useAuthStore();
   const { clearAllStores } = useInitializeFilesStores();
   const findUserWithWalletRegistered = async () => {
     if (!wallet?.publicKey) {
@@ -44,10 +48,22 @@ const OnboardingDialogContent = () => {
       walletAddress: wallet.publicKey.toString(),
     });
 
+    const subscriptionResult = await getUserSubscriptionByWallet({
+      walletAddress: wallet.publicKey.toString(),
+    });
+
     setRetryingLoading(false);
     if (!response.success) {
       setErrorRetrievalMsg(response.error || "Error retrieving user data");
       return;
+    }
+
+    if (subscriptionResult.success) {
+      setSubscriptionTimestamp(
+        subscriptionResult.data?.timestamp
+          ? parseInt(subscriptionResult.data?.timestamp)
+          : 0,
+      );
     }
 
     if (!response.data?.user_solana) {
@@ -94,6 +110,9 @@ const OnboardingDialogContent = () => {
           </DialogDescription>
         </DialogHeader>
         <div className="mt-2 flex w-full flex-col">
+          <p>
+            There was an error retrieving your information based on your wallet
+          </p>
           <p className="text-red-500">{errorRetrievalMsg}</p>
           <div className="flex justify-center">
             <Button
@@ -122,10 +141,10 @@ const OnboardingDialogContent = () => {
           <Skeleton className="h-12 w-12 rounded-full" />
           <div className="space-y-2">
             <Skeleton className="h-4 w-[250px]" />
-            <Skeleton className="h-4 w-[200px]" />
-            <Skeleton className="h-4 w-[200px]" />
-            <Skeleton className="h-4 w-[200px]" />
-            <Skeleton className="h-4 w-[200px]" />
+            <Skeleton className="h-4 w-[250px]" />
+            <Skeleton className="h-4 w-[250px]" />
+            <Skeleton className="h-4 w-[250px]" />
+            <Skeleton className="h-4 w-[250px]" />
           </div>
         </div>
       </div>
