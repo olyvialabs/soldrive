@@ -102,8 +102,8 @@ export const UpgradeAccountContent = ({
               // @TODO: validate timestamp of 30 days is not reached yet
               if (response.data?.id) {
                 setSubscriptionTimestamp(
-                  subscriptionResult.data?.timestamp
-                    ? parseInt(subscriptionResult.data?.timestamp)
+                  response.data?.timestamp
+                    ? parseInt(response.data?.timestamp)
                     : 0,
                 );
               }

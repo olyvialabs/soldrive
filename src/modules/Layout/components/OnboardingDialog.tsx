@@ -60,8 +60,8 @@ const OnboardingDialogContent = () => {
 
     if (subscriptionResult.success) {
       setSubscriptionTimestamp(
-        subscriptionResult.data?.timestamp
-          ? parseInt(subscriptionResult.data?.timestamp)
+        subscriptionResult?.data?.timestamp
+          ? parseInt(subscriptionResult?.data?.timestamp)
           : 0,
       );
     }

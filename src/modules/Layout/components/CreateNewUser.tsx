@@ -197,12 +197,12 @@ const CreateUserButton: React.FC = () => {
       const response =
         responses[2].status === "fulfilled"
           ? responses[2].value
-          : { data: { id: "", timestamp: " 0" } };
-      const timestamp = response.data.id
-        ? parseInt(response.data?.timestamp)
+          : { data: { id: "", timestamp: "0" } };
+      const timestamp = response?.data?.id
+        ? parseInt(response?.data?.timestamp || "0")
         : 0;
-      if (response.data?.id) {
-        setSubscriptionTimestamp(timestamp);
+      if (response?.data?.id) {
+        setSubscriptionTimestamp(timestamp || 0);
       }
       setUserInformationData({
         ...userData,
