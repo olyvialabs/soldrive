@@ -8,7 +8,7 @@ import {
   CommandList,
 } from "~/components/ui/command";
 import useContractIndexer from "../../hooks/useContractIndexer";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { CommandLoading } from "cmdk";
 import { Skeleton } from "~/components/ui/skeleton";
 import _ from "lodash";
@@ -31,9 +31,19 @@ export function UsernameSearchInput({
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const { searchUsernames } = useContractIndexer();
+  const signalReference = useRef(new AbortController());
   const search = (value: string) => {
     setLoading(true);
-    searchUsernames({ username: value, limit: 6 })
+
+    // if (signalReference.current.signal) {
+    //   const abort = new AbortController();
+    //   signalReference.current.abort();
+    // }
+    searchUsernames({
+      username: value,
+      limit: 6,
+      abortSignal: signalReference.current.signal,
+    })
       .then((result) => {
         console.log(result);
         console.log(result);
@@ -55,11 +65,11 @@ export function UsernameSearchInput({
           // }
           setOpen(true);
         }}
-        className="flex cursor-pointer flex-row items-center space-x-2 space-y-1.5 rounded-lg border p-4 hover:bg-accent"
+        className="flex cursor-pointer flex-row items-center space-x-2 space-y-1.5 rounded-lg border px-2 py-1 hover:bg-accent"
       >
         <PersonIcon />
         <div className="flex w-full flex-1 flex-col">
-          <span className="break-all text-base font-semibold tracking-tight">
+          <span className="break-all text-lg font-semibold tracking-tight">
             Destination
           </span>
 
@@ -85,7 +95,7 @@ export function UsernameSearchInput({
             debouncedFunction(e.target.value);
           }}
         />
-        <CommandList onSelectCapture={console.log} style={{ zIndex: 999999 }}>
+        <CommandList style={{ zIndex: 999999 }}>
           {loading && <CommandLoading>Loading users...</CommandLoading>}
           <CommandEmpty>
             {!input
@@ -96,14 +106,13 @@ export function UsernameSearchInput({
             return (
               <CommandItem
                 onSelect={(e) => {
-                  alert("a");
                   setCurrentUser(item);
                   setOpen(false);
                 }}
                 disabled={false}
                 aria-disabled={false}
                 key={`${index}-${item.did_public_address}`}
-                value={item.did_public_address}
+                value={item.username}
                 className="cursor-pointer"
               >
                 <div

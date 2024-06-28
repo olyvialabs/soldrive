@@ -11,6 +11,7 @@ import { AllSolanaContent } from "~/modules/Auth/components/WalletConnectionButt
 import { Ed25519Provider } from "key-did-provider-ed25519";
 import KeyResolver from "key-did-resolver";
 import { DID } from "dids";
+import { toast } from "sonner";
 
 const projectId = "2IInhOpJffZRxaPQqK3j97jWqHb";
 const projectSecret = "e8624fdd9dddbe74c18be3d9c84ade1b";
@@ -66,7 +67,7 @@ const DidGenerator = ({
           setDidDocumentCid(cid.toString());
           onChangeDid(cid.toString());
         } else {
-          alert("Phantom wallet not found!");
+          toast("Phantom wallet not found!");
         }
       }
     } catch (error) {
@@ -108,7 +109,7 @@ const FileTestContent = () => {
     // hash.update(inputKey);
     const provider = window.phantom?.solana;
     if (!provider) {
-      alert("You need a solana wallet");
+      toast("You need a solana wallet");
       return;
     }
 

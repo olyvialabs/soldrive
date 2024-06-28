@@ -1,6 +1,8 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
+const SolanaClusterEnum = z.enum(["mainnet-beta", "testnet", "devnet"]);
+
 export const env = createEnv({
   /**
    * Specify your server-side environment variables schema here. This way you can ensure the app
@@ -17,7 +19,11 @@ export const env = createEnv({
     NEXT_PUBLIC_USERS_CONTRACT_ADDRESS: z.string(),
     NEXT_PUBLIC_FILES_RELATIONSHIP_CONTRACT_ADDRESS: z.string(),
     NEXT_PUBLIC_INDEXER_SERVICE_URL: z.string(),
-    NEXT_PUBLIC_APP_URL: z.string()
+    NEXT_PUBLIC_APP_URL: z.string(),
+    NEXT_PUBLIC_SUBSCRIPTION_RELATIONSHIP_CONTRACT_ADDRESS: z.string(),
+    NEXT_PUBLIC_BONK_TOKEN_ADDRESS: z.string(),
+    NEXT_PUBLIC_BONK_DESTINATION_WALLET_ADDRESS: z.string(),
+    NEXT_PUBLIC_SOLANA_NETWORK: SolanaClusterEnum
   },
 
   /**
@@ -31,7 +37,11 @@ export const env = createEnv({
     NEXT_PUBLIC_FILES_RELATIONSHIP_CONTRACT_ADDRESS:
       process.env.NEXT_PUBLIC_FILES_RELATIONSHIP_CONTRACT_ADDRESS,
     NEXT_PUBLIC_INDEXER_SERVICE_URL: process.env.NEXT_PUBLIC_INDEXER_SERVICE_URL,
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_SUBSCRIPTION_RELATIONSHIP_CONTRACT_ADDRESS: process.env.NEXT_PUBLIC_SUBSCRIPTION_RELATIONSHIP_CONTRACT_ADDRESS,
+    NEXT_PUBLIC_BONK_TOKEN_ADDRESS: process.env.NEXT_PUBLIC_BONK_TOKEN_ADDRESS,
+    NEXT_PUBLIC_BONK_DESTINATION_WALLET_ADDRESS: process.env.NEXT_PUBLIC_BONK_DESTINATION_WALLET_ADDRESS,
+    NEXT_PUBLIC_SOLANA_NETWORK: process.env.NEXT_PUBLIC_SOLANA_NETWORK
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

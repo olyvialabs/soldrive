@@ -105,9 +105,11 @@ const useContractIndexer = () => {
   const searchUsernames = async ({
     username,
     limit = 5,
+    abortSignal,
   }: {
     username: string;
     limit?: number;
+    abortSignal: AbortSignal;
   }): Promise<{
     success: boolean;
     error?: string;
@@ -123,6 +125,7 @@ const useContractIndexer = () => {
           query: searchUsernamesQuery(username, limit),
         }),
         cache: "no-cache",
+        signal: abortSignal,
       });
 
       if (!response.ok) {
@@ -277,6 +280,7 @@ const useContractIndexer = () => {
     to?: string;
     typ?: string;
   }) {
+    console.log({ fileData });
     try {
       const response = await fetch(`${indexerUrl}/graphql`, {
         method: "POST",

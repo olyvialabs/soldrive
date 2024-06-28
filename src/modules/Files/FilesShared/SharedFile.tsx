@@ -134,8 +134,8 @@ const SharedFile = ({ cid }: { cid: string }) => {
                 </Button>
               </Link>
               <img src="/app-logo.png" className="w-12" />
-              <CardTitle className="mb-4 text-base">
-                Descentralized File Transfer
+              <CardTitle className="mb-4 text-xs uppercase">
+                DESCENTRALIZED FILE TRANSFER
               </CardTitle>
             </CardHeader>
             <div className="mt-2 flex flex-col space-y-2 break-all px-6">

@@ -18,6 +18,8 @@ import CreateUserButton from "./CreateNewUser";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
 import { useInitializeFilesStores } from "~/modules/Files/FileDisplayer/hooks/useInitializeFilesStores";
+import Link from "next/link";
+import { BorderBeam } from "~/components/ui/border-beam";
 
 const OnboardingDialogContent = () => {
   const wallet = useWallet();
@@ -83,11 +85,23 @@ const OnboardingDialogContent = () => {
       findUserWithWalletRegistered();
     }
   }, [wallet?.publicKey]);
-
+  const HeaderLogo = (
+    <Link href="/">
+      <div className="mb-2 flex flex-row items-center">
+        <img
+          src="/assets/images/LogoSolo.png"
+          alt="SolDrive Logo"
+          className="mr-2 w-12"
+        />
+        <span className="font-bold">SOLDRIVE</span>
+      </div>
+    </Link>
+  );
   if (!wallet?.connected || !wallet?.publicKey?.toString()) {
     return (
       <>
         <DialogHeader>
+          {HeaderLogo}
           <DialogTitle>Authenticate with your Wallet</DialogTitle>
           <DialogDescription>
             To continue, please authenticate first.
@@ -104,14 +118,16 @@ const OnboardingDialogContent = () => {
     return (
       <div>
         <DialogHeader>
-          <DialogTitle>Creation of your DID</DialogTitle>
+          {HeaderLogo}
+          <DialogTitle>Create Your Decentralized Identifier (DID)</DialogTitle>
           <DialogDescription>
-            To continue, please pick up a username.
+            Please choose a username to proceed.
           </DialogDescription>
         </DialogHeader>
         <div className="mt-2 flex w-full flex-col">
           <p>
-            There was an error retrieving your information based on your wallet
+            An error occurred while retrieving your information from your
+            wallet.
           </p>
           <p className="text-red-500">{errorRetrievalMsg}</p>
           <div className="flex justify-center">
@@ -120,7 +136,7 @@ const OnboardingDialogContent = () => {
               onClick={findUserWithWalletRegistered}
               loading={retryingLoading}
             >
-              Retry
+              Try Again
             </Button>
           </div>
         </div>
@@ -132,9 +148,10 @@ const OnboardingDialogContent = () => {
     return (
       <div>
         <DialogHeader>
-          <DialogTitle>Authenticate with your Wallet</DialogTitle>
+          {HeaderLogo}
+          <DialogTitle>Wallet Authentication Required</DialogTitle>
           <DialogDescription>
-            To continue, please authenticate first.
+            Please authenticate with your wallet to proceed.
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center space-x-4">
@@ -155,15 +172,16 @@ const OnboardingDialogContent = () => {
     return (
       <div>
         <DialogHeader>
-          <DialogTitle>Creation of your DID</DialogTitle>
+          {HeaderLogo}
+          <DialogTitle>Create Your Decentralized Identifier (DID)</DialogTitle>
           <DialogDescription>
-            To continue, please pick up a username.
+            Please choose a username to proceed.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <CreateUserButton />
           <p className="text-primary-500 text-sm">
-            Creating the User DID for wallet:{" "}
+            Generating DID for wallet:{" "}
             <b className="break-all text-purple-600">
               {wallet.publicKey.toString()}
             </b>
@@ -195,8 +213,16 @@ export function OnboardingDialog() {
   // <AllSolanaContent>
   return (
     <Dialog open>
-      <DialogContent hideCrossButton className="sm:max-w-[425px] ">
-        <div className="flex flex-col items-center justify-center">
+      <DialogContent
+        hideCrossButton
+        style={{ zIndex: 80 }}
+        className="sm:max-w-[425px]"
+      >
+        <BorderBeam />
+        <div
+          style={{ zIndex: 90 }}
+          className="flex flex-col items-center justify-center"
+        >
           <OnboardingDialogContent />
         </div>
       </DialogContent>

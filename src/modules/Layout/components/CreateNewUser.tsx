@@ -143,7 +143,6 @@ const CreateUserButton: React.FC = () => {
       setIsLoading(false);
       return;
     }
-    const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
 
     const result = await createNewDidUserCredentials();
     if (!result?.cid) {
@@ -152,6 +151,7 @@ const CreateUserButton: React.FC = () => {
           "There was an issue generating your DID, please contact support",
         icon: <DownloadIcon />,
       });
+      setIsLoading(false);
       return;
     }
 
@@ -171,6 +171,10 @@ const CreateUserButton: React.FC = () => {
       data: userMetadataBuffer,
     });
     try {
+      const connection = new Connection(
+        clusterApiUrl(env.NEXT_PUBLIC_SOLANA_NETWORK),
+        "confirmed",
+      );
       let transaction = new Transaction().add(customInstruction);
       transaction.recentBlockhash = (
         await connection.getRecentBlockhash()
@@ -228,17 +232,33 @@ const CreateUserButton: React.FC = () => {
     }
   };
 
+  const handleUsernameChange = (e) => {
+    const value = e.target.value
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+      .slice(0, 40);
+    setUsername(value);
+  };
+
   // <AllSolanaContent>
   return (
     <>
-      <Label>Claim your username</Label>
-      <Input onChange={(e) => setUsername(e.target.value)} value={username} />
+      <Label>Secure Your Username</Label>
+      <Input
+        onChange={handleUsernameChange}
+        value={username}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            createUser();
+          }
+        }}
+      />
       <Button
         className="mt-2 w-full text-white"
         loading={isLoading}
         onClick={createUser}
       >
-        Create User
+        Register User
       </Button>
     </>
   );

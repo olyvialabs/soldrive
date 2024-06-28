@@ -13,10 +13,19 @@ export const metadata: Metadata = {
 
 export default function AppTransferPage() {
   return (
-    <>
+    <div className="relative flex min-h-dvh flex-col">
+      <div
+        className="absolute inset-0 -z-10 bg-left-top bg-no-repeat"
+        style={{
+          backgroundImage:
+            "url('/assets/images/DegradadoSeccion1Izquierdo.png')",
+        }}
+      ></div>
       <AppHeader />
       <SoldriveTransferComponent />
-      <FooterContent />
-    </>
+      <div className="z-0 w-full">
+        <FooterContent />
+      </div>
+    </div>
   );
 }

@@ -10,13 +10,12 @@ import { BN } from "bn.js";
 import * as anchor from "@project-serum/anchor";
 import { toast } from "sonner";
 import useContractIndexer from "~/modules/Files/hooks/useContractIndexer";
+import { env } from "~/env";
 
 const PROGRAM_ID = new PublicKey(
-  "DQozU1hdPhGKPPL3dWonTmfe6w6uydqudrbspmkpfaVW",
+  env.NEXT_PUBLIC_SUBSCRIPTION_RELATIONSHIP_CONTRACT_ADDRESS,
 );
-const TOKEN_MINT = new PublicKey(
-  "9GBNjXFfsuoTrrQDRVaV9xCDQwzpWSGJuwMjLwb8RXAY",
-);
+const TOKEN_MINT = new PublicKey(env.NEXT_PUBLIC_BONK_TOKEN_ADDRESS);
 
 const idl = {
   version: "0.1.0",
@@ -86,7 +85,7 @@ const idl = {
     },
   ],
   metadata: {
-    address: "DQozU1hdPhGKPPL3dWonTmfe6w6uydqudrbspmkpfaVW",
+    address: env.NEXT_PUBLIC_SUBSCRIPTION_RELATIONSHIP_CONTRACT_ADDRESS,
   },
 };
 
@@ -97,14 +96,17 @@ const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
   const { manualSyncSubscriptionCreation } = useContractIndexer();
   const transferBonkTokens = async () => {
     if (!wallet || !wallet.publicKey) {
-      alert("Connect your wallet to continue");
+      toast("Connect your wallet to continue");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+      const connection = new Connection(
+        clusterApiUrl(env.NEXT_PUBLIC_SOLANA_NETWORK),
+        "confirmed",
+      );
       const provider = new anchor.AnchorProvider(connection, wallet, {
         preflightCommitment: "confirmed",
       });
@@ -122,7 +124,7 @@ const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
         connection,
         wallet?.publicKey,
         TOKEN_MINT,
-        new PublicKey("FYMwG2PmdjMaqq1PS92TmH5ntb6UgCENZALywNCKK4XT"),
+        new PublicKey(env.NEXT_PUBLIC_BONK_DESTINATION_WALLET_ADDRESS),
       );
 
       console.log("fromAta:", fromAta.address.toBase58());
@@ -149,10 +151,19 @@ const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
       });
       console.log(`Transaction successful! TxHash: ${txHash}`);
     } catch (error) {
+      if (error?.message?.includes("credit")) {
+        toast("Not enough balance to make transaction.", {
+          position: "top-center",
+          description: "Get Solana($SOL) and try again",
+        });
+      } else {
+        toast("There was an error processing user subscription.", {
+          position: "top-center",
+          description: `Please contact support. ${error?.message || ""}`,
+        });
+      }
       console.error("Transaction failed", error);
-      toast("Error processing subscription!", {
-        description: "Please contact support if this issue persist",
-      });
+
       if (error?.logs) {
         console.log("Transaction logs:", error.logs);
       }

@@ -40,7 +40,7 @@ export const useEncryptionFileEncryption = () => {
   const { currentFolderInformation } = useFilesStore();
   const { userInformation } = useAuthStore();
   const { getFilesByWallet } = useGetAllFilesByWalletIndexer();
-  const { manualSyncFileCreation, getUserByWallet } = useContractIndexer();
+  const { manualSyncFileCreation } = useContractIndexer();
   const { mintToken } = useSaveFileDataOnChain();
   const { changeForcedUploadFiles } = useFilesStore();
   const { generateUniqueCredentials } = useGetAuthenticatedWalletKeys();
@@ -52,47 +52,8 @@ export const useEncryptionFileEncryption = () => {
     destinationUser?: UserInformationData,
   ) => {
     const myUserWallet = wallet.publicKey?.toString();
-
     destinationUser = destinationUser || userInformation!;
-    // let otherUserDid = userInformation?.did_public_address!;
-    // const isDestinationOtherAddress = myUserWallet !== destinationWallet;
-    // if (isDestinationOtherAddress) {
-    //   const otherAddrInfo = await getUserByWallet({
-    //     walletAddress: destinationWallet!,
-    //   });
-    //   if (!otherAddrInfo.success || !otherAddrInfo.data?.did_public_address) {
-    //     toast("There was an issue with user DID retrieval", {
-    //       description:
-    //         "Please try again. Contact support if this issue persist.",
-    //     });
-    //     return;
-    //   }
-    //   otherUserDid = otherAddrInfo.data?.did_public_address!;
-    // }
-
-    // const ipfsFileContentChunks = [];
-    // for await (const chunk of ipfsClient.cat(thePublicAddress)) {
-    //   ipfsFileContentChunks.push(chunk);
-    // }
-    // const walletIpfsFileContent = Buffer.concat(ipfsFileContentChunks);
-    // const fileContentJson = JSON.parse(walletIpfsFileContent.toString());
-
-    const { privateKeyString, publicKeyString } =
-      await generateUniqueCredentials();
-    console.log({ privateKeyString, publicKeyString });
-    console.log({ privateKeyString, publicKeyString });
-    // Decode the private key string
-    //const privateKey = bs58.decode(privateKeyString!);
-    // Use the first 32 bytes of the private key as the shared secret
-    //const secretKey = privateKey.slice(0, 32);
-    // it's important to encode from array from DID
-    // const destinationPublicKey = bs58.encode(fileContentJson.didPublicKey);
-    // console.log({ destinationUser, userInformation });
-    // console.log({ destinationUser, userInformation });
     const publicKey = destinationUser?.did_public_key!;
-    // bs58
-    //   .decode(destinationUser?.did_public_key!)
-    //   .slice(0, 32);
 
     // Encrypt the file content
     const encoder = new TextEncoder();
@@ -105,20 +66,6 @@ export const useEncryptionFileEncryption = () => {
       encodedMessage = encoder.encode(content);
     }
     const encryptedMessage = eciesEncrypt(publicKey, encodedMessage);
-    // key is already as b58
-    // as that's the format when DID is created
-    // const nonce = nacl.randomBytes(nacl.secretbox.nonceLength);
-    // const encryptedMessage = nacl.secretbox(
-    //   encodedMessage,
-    //   nonce,
-    //   publicKey,
-    //   //secretKey,
-    // );
-
-    // Combine the nonce and the encrypted message
-    // const combined = new Uint8Array(nonce.length + encryptedMessage.length);
-    // combined.set(nonce);
-    // combined.set(encryptedMessage, nonce.length);
 
     // Upload the combined encrypted data to IPFS
     const added = await ipfsClient.add(encryptedMessage);
@@ -134,6 +81,7 @@ export const useEncryptionFileEncryption = () => {
     };
     await mintToken(newToken);
     toast(`New file ${fileName} created.`);
+    console.log(`New file ${fileName} created.`);
     await manualSyncFileCreation(newToken);
     changeForcedUploadFiles(false);
     // on create new file/folder, reload all data

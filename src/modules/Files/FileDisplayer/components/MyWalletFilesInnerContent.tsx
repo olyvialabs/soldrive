@@ -67,7 +67,7 @@ const MyWalletFilesInnerContent = () => {
                   changeForcedUploadFiles(false);
                 }}
                 variant="link"
-                className="ml-4 w-full border-purple-500 px-4 text-center"
+                className="bordered ml-4 w-full border-dotted border-purple-500 px-4 text-center"
                 size="lg"
               >
                 Close file uploader

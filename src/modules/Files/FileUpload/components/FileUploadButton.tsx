@@ -91,60 +91,78 @@ export const useSaveFileDataOnChain = () => {
       toast("Wallet not connected");
       return;
     }
-    setIsLoading(true);
-    const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-    const newToken = {
-      file_id: uuidv4(),
-      name: name,
-      weight: weight || 0,
-      file_parent_id:
-        file_parent_id || currentFolderInformation.fileData?.file_id || "",
-      cid: cid || "",
-      typ: typ || "file",
-      from,
-      to,
-    };
-    const metadata = new TokenMetadata(newToken);
+    try {
+      setIsLoading(true);
+      const connection = new Connection(
+        clusterApiUrl(env.NEXT_PUBLIC_SOLANA_NETWORK),
+        "confirmed",
+      );
+      const newToken = {
+        file_id: uuidv4(),
+        name: name,
+        weight: weight || 0,
+        file_parent_id:
+          file_parent_id || currentFolderInformation.fileData?.file_id || "",
+        cid: cid || "",
+        typ: typ || "file",
+        from,
+        to,
+      };
+      const metadata = new TokenMetadata(newToken);
 
-    const metadataBuffer = Buffer.from(
-      serialize(TokenMetadataSchema, metadata),
-    );
+      const metadataBuffer = Buffer.from(
+        serialize(TokenMetadataSchema, metadata),
+      );
 
-    const customInstruction = new TransactionInstruction({
-      keys: [],
-      programId: PROGRAM_ID,
-      data: metadataBuffer,
-    });
+      const customInstruction = new TransactionInstruction({
+        keys: [],
+        programId: PROGRAM_ID,
+        data: metadataBuffer,
+      });
 
-    let transaction = new Transaction().add(customInstruction);
-    transaction.recentBlockhash = (
-      await connection.getRecentBlockhash()
-    ).blockhash;
-    transaction.feePayer = wallet.publicKey;
+      let transaction = new Transaction().add(customInstruction);
+      transaction.recentBlockhash = (
+        await connection.getRecentBlockhash()
+      ).blockhash;
+      transaction.feePayer = wallet.publicKey;
 
-    // Assign a recent blockhash to the transaction
-    const { blockhash } = await connection.getRecentBlockhash("finalized");
-    transaction.recentBlockhash = blockhash;
+      // Assign a recent blockhash to the transaction
+      const { blockhash } = await connection.getRecentBlockhash("finalized");
+      transaction.recentBlockhash = blockhash;
 
-    // Sign the transaction through the wallet
-    const signedTransaction = await signTransaction(transaction);
+      // Sign the transaction through the wallet
+      const signedTransaction = await signTransaction(transaction);
 
-    // Send the signed transaction
-    const signature = await connection.sendRawTransaction(
-      signedTransaction.serialize(),
-    );
+      // Send the signed transaction
+      const signature = await connection.sendRawTransaction(
+        signedTransaction.serialize(),
+      );
 
-    // Confirm the transaction
-    await connection.confirmTransaction(signature, "finalized");
-    toast(
-      `New ${typ === "file" ? "File" : "Folder"} ${newToken.name} created.`,
-    );
-    await manualSyncFileCreation(newToken);
-    if (forcedUploadFiles) {
-      changeForcedUploadFiles(false);
+      // Confirm the transaction
+      await connection.confirmTransaction(signature, "finalized");
+      toast(
+        `New ${typ === "file" ? "File" : "Folder"} ${newToken.name} created.`,
+      );
+      await manualSyncFileCreation(newToken);
+      if (forcedUploadFiles) {
+        changeForcedUploadFiles(false);
+      }
+      // on create new file, reload all data
+      await getFilesByWallet(newToken.from);
+    } catch (error) {
+      if (error?.message?.includes("credit")) {
+        toast("Not enough balance to make transaction.", {
+          position: "top-center",
+          description: "Get Solana($SOL) and try again",
+        });
+      } else {
+        toast("There was an error creating new file.", {
+          position: "top-center",
+          description: `Please contact support. ${error?.message || ""}`,
+        });
+      }
+      console.log("Transaction failed", error);
     }
-    // on create new file, reload all data
-    await getFilesByWallet(newToken.from);
     setIsLoading(false);
   };
 

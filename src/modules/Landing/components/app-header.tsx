@@ -1,6 +1,7 @@
 import LogoContent from "./logo-content";
 import { MobileDrawer } from "./mobile-drawer";
 import { AuthenticatedOptions } from "./authenticated-options";
+import { useRouter } from "next/navigation";
 
 const AppHeader = () => {
   return (

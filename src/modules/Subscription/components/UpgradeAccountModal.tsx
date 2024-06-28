@@ -7,6 +7,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useState } from "react";
 import { useAuthStore } from "~/modules/Store/Auth/store";
 import UpgradeToProButton from "./UpgradeToProButton";
+import { getIsUserSubscribed } from "~/modules/Store/Auth/selectors";
 
 export const UpgradeAccountContent = ({
   onUpgrade,
@@ -15,6 +16,7 @@ export const UpgradeAccountContent = ({
 }) => {
   const { getUserSubscriptionByWallet } = useContractIndexer();
   const { setSubscriptionTimestamp } = useAuthStore();
+  const isUserSubscribed = useAuthStore(getIsUserSubscribed);
   const wallet = useWallet();
 
   return (
@@ -41,7 +43,12 @@ export const UpgradeAccountContent = ({
           </div>
         </div>
         <div className="text-center">
-          <span>Your current plan</span>
+          {isUserSubscribed && (
+            <span className="text-gray-500">You have a PRO subscription.</span>
+          )}
+          {!isUserSubscribed && (
+            <span className="text-purple-500">Your current plan</span>
+          )}
           {/* <Button variant="ghost" size="lg">
             Start for free
           </Button> */}
@@ -76,40 +83,27 @@ export const UpgradeAccountContent = ({
           </div>
         </div>
         <div className="text-center">
-          {/* <Button
-            className="w-full text-white md:w-auto"
-            loading={loading}
-            onClick={async () => {
-              setLoading(true);
-              const response = await getUserSubscriptionByWallet(
-                wallet?.publicKey?.toString() || "",
-              );
-              // @TODO: validate timestamp of 30 days is not reached yet
-              if (response.data?.id) {
-                setSubscriptionTimestamp(response?.data?.timestamp || 0);
-              }
-              setLoading(false);
-              onUpgrade?.();
-            }}
-          >
-            Upgrade to PRO
-          </Button> */}
-          <UpgradeToProButton
-            onUpgrade={async () => {
-              const response = await getUserSubscriptionByWallet({
-                walletAddress: wallet?.publicKey?.toString() || "",
-              });
-              // @TODO: validate timestamp of 30 days is not reached yet
-              if (response.data?.id) {
-                setSubscriptionTimestamp(
-                  response.data?.timestamp
-                    ? parseInt(response.data?.timestamp)
-                    : 0,
-                );
-              }
-              onUpgrade?.();
-            }}
-          />
+          {isUserSubscribed && (
+            <span className="text-purple-500">You have this plan!</span>
+          )}
+          {!isUserSubscribed && (
+            <UpgradeToProButton
+              onUpgrade={async () => {
+                const response = await getUserSubscriptionByWallet({
+                  walletAddress: wallet?.publicKey?.toString() || "",
+                });
+                // @TODO: validate timestamp of 30 days is not reached yet
+                if (response.data?.id) {
+                  setSubscriptionTimestamp(
+                    response.data?.timestamp
+                      ? parseInt(response.data?.timestamp)
+                      : 0,
+                  );
+                }
+                onUpgrade?.();
+              }}
+            />
+          )}
         </div>
       </div>
     </div>

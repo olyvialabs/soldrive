@@ -32,23 +32,25 @@ import { useFilesStore } from "~/modules/Store/FileDisplayLayout/store";
 import useDownloadFiles from "../../FileDisplayer/hooks/useDownloadFiles";
 import { useUserFilesStore } from "~/modules/Store/UserFiles/store";
 import useGetAuthenticatedWalletKeys from "~/modules/User/hooks/useGetAuthenticatedWalletKeys";
-import useContractIndexer from "../../hooks/useContractIndexer";
 import { UsernameSearchInput } from "./UsernameSearchInput";
+import { BorderBeam } from "~/components/ui/border-beam";
+import ShineBorder from "~/components/ui/shine-border";
 
 type ForView = "landing" | "dialog";
 const TransferInnerContentHeader = ({ forView }: { forView: ForView }) => {
   if (forView == "dialog") {
     return null;
   }
+
   return (
-    <CardHeader className="pb-0">
-      <Link href="/app">
+    <CardHeader className="px-2 pb-0 md:px-4">
+      {/* <Link href="/app">
         <Button variant="link" className="gap-1 p-0">
           <ArrowLeftIcon />
           Go back
         </Button>
-      </Link>
-      <img src="/app-logo.png" className="w-12" />
+      </Link> 
+      <img src="/app-logo.png" className="w-12" />*/}
       <CardTitle className="text-base">Descentralized File Transfer</CardTitle>
     </CardHeader>
   );
@@ -89,8 +91,7 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
       });
       return;
     }
-    console.log({ destinationUser });
-    console.log({ destinationUser });
+
     if (!destinationUser) {
       toast("Add a destination wallet address to continue", {
         position: "top-center",
@@ -205,141 +206,147 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
       />
       <Card
         className={cn(
+          "relative",
           forView === "dialog"
             ? "w-full border-none shadow-none"
-            : "w-full max-w-sm rounded-lg shadow-sm",
+            : "max-w-full rounded-lg shadow-sm md:w-[20em] md:max-w-sm",
         )}
       >
-        <TransferInnerContentHeader forView={forView} />
-        {generatedCid ? (
-          <div className="my-4 px-4">
-            <CardDescription className="text-sm">
-              <p>File was sent correctly. You can access this via this link:</p>
-              <a
-                href={newLink}
-                target="_blank"
-                className="break-all text-purple-500"
-              >
-                {newLink}
-              </a>
-            </CardDescription>
-          </div>
-        ) : (
-          <>
-            {forView === "landing" && (
-              <>
-                <div className="mt-4 px-4">
-                  <CardHeader
-                    onClick={() => {
-                      document.getElementById("file-upload").click();
-                    }}
-                    className="flex cursor-pointer flex-row items-center space-x-2 rounded-lg border p-4 hover:bg-accent"
-                  >
-                    <PlusCircledIcon />
-                    <div>
-                      <CardTitle className="text-base">Upload files</CardTitle>
-                      <CardDescription className="text-sm">
-                        Click here to select your file
-                      </CardDescription>
-                    </div>
-                  </CardHeader>
-                </div>
-                <div className="px-4">
-                  <input
-                    type="file"
-                    id="file-upload"
-                    className="hidden"
-                    onChange={handleFileChange}
-                  />
-                  {selectedFile && (
-                    <div className="mt-2 flex w-fit items-center space-x-2 rounded-lg border px-2 py-1">
-                      <FileIcon />
-                      <span className="flex flex-1">{selectedFile.name}</span>
-                      <button
-                        className="text-red-500"
-                        onClick={handleRemoveFile}
-                      >
-                        &times;
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-            <CardContent className="flex flex-col px-4 pb-4">
-              {isSubscribed ? (
-                <div className="mb-4">
-                  <span className="text-xs text-gray-500">
-                    You have PRO plan. You don't have a limit for each file.
-                  </span>
-                </div>
-              ) : (
-                <div className="my-2 flex items-center justify-between">
-                  <span className="mt-2 text-xs text-gray-500">
-                    Up to 10 MB per file on free plan.
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsUpgradeModalOpened(true);
-                    }}
-                  >
-                    Increase limit
-                  </Button>
-                </div>
+        <BorderBeam />
+        <div style={{ zIndex: 100 }} className="relative">
+          <TransferInnerContentHeader forView={forView} />
+          {generatedCid ? (
+            <div className="my-4 px-4">
+              <CardDescription className="text-sm">
+                <p>
+                  File was sent correctly. You can access this via this link:
+                </p>
+                <a
+                  href={newLink}
+                  target="_blank"
+                  className="break-all text-purple-500"
+                >
+                  {newLink}
+                </a>
+              </CardDescription>
+            </div>
+          ) : (
+            <>
+              {forView === "landing" && (
+                <>
+                  <div className="mt-4 px-2 md:px-4">
+                    <CardHeader
+                      onClick={() => {
+                        document.getElementById("file-upload").click();
+                      }}
+                      className="flex cursor-pointer flex-row items-center space-x-2 rounded-lg border px-2 pb-1.5 pt-1 hover:bg-accent"
+                    >
+                      <PlusCircledIcon />
+                      <div>
+                        <CardTitle className="text-lg">Upload files</CardTitle>
+                        <CardDescription className="text-sm">
+                          Click here to select your file
+                        </CardDescription>
+                      </div>
+                    </CardHeader>
+                  </div>
+                  <div className="px-4">
+                    <input
+                      type="file"
+                      id="file-upload"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                    {selectedFile && (
+                      <div className="mt-2 flex w-fit items-center space-x-2 rounded-lg border px-2 py-1">
+                        <FileIcon />
+                        <span className="flex flex-1">{selectedFile.name}</span>
+                        <button
+                          className="text-red-500"
+                          onClick={handleRemoveFile}
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
-              <div className="flex flex-col space-y-4">
-                <div>
-                  <UsernameSearchInput
-                    setCurrentUser={setDestinationUser}
-                    currentUser={destinationUser}
-                    forView={forView}
-                  />
-                </div>
-                <div className="mt-2 flex flex-col">
-                  <Label className="break-all text-base font-semibold tracking-tight">
-                    Your information
-                  </Label>
-                  <div className="">
-                    <span className="break-all text-sm">
-                      <b className="text-purple-500">
-                        {userInformation?.username}
-                      </b>{" "}
-                      with address{" "}
-                      {wallet?.publicKey ? wallet.publicKey.toString() : ""}
+              <CardContent className="flex flex-col px-2 pb-4 md:px-4">
+                {isSubscribed ? (
+                  <div className="mb-4">
+                    <span className="text-xs text-gray-500">
+                      You have PRO plan. You don't have a limit for each file.
                     </span>
                   </div>
+                ) : (
+                  <div className="my-2 flex items-center justify-between">
+                    <span className="mt-2 text-xs text-gray-500">
+                      Up to 10 MB per file on free plan.
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsUpgradeModalOpened(true);
+                      }}
+                    >
+                      Increase limit
+                    </Button>
+                  </div>
+                )}
+                <div className="flex flex-col space-y-4">
+                  <div>
+                    <UsernameSearchInput
+                      setCurrentUser={setDestinationUser}
+                      currentUser={destinationUser}
+                      forView={forView}
+                    />
+                  </div>
+                  <div className="mt-2 flex flex-col">
+                    <Label className="break-all text-base font-semibold tracking-tight">
+                      Your information
+                    </Label>
+                    <div className="">
+                      <span className="break-all text-sm">
+                        <b className="text-purple-500">
+                          {userInformation?.username}
+                        </b>{" "}
+                        with address{" "}
+                        {wallet?.publicKey ? wallet.publicKey.toString() : ""}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex items-center justify-between border-t p-4">
-              <Button
-                loading={isUploadingFile}
-                disabled={isUploadingFile}
-                className="w-full text-white"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  sendFile();
-                }}
-              >
-                Send
-              </Button>
-            </CardFooter>
-          </>
-        )}
+              </CardContent>
+              <CardFooter className="flex items-center justify-between border-t p-4">
+                <Button
+                  loading={isUploadingFile}
+                  disabled={isUploadingFile}
+                  className="w-full text-white"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    sendFile();
+                  }}
+                >
+                  Send
+                </Button>
+              </CardFooter>
+            </>
+          )}
+        </div>
       </Card>
     </>
   );
+
   if (forView === "landing") {
+    return content;
     return <div className="flex flex-col justify-center">{content}</div>;
   }
   return content;
 };
-
-// 5KqPscmVdEYJ9HmQdymcBvpfi515debCGUmpgoH6sEn4
 
 export default SoldriveTransferInnerContent;
