@@ -27,14 +27,20 @@ const SoldriveTransferComponent = () => {
   return (
     <div className="z-0 mx-auto flex max-w-full flex-col justify-between px-8 md:w-[1250px] md:flex-row">
       <div className="flex w-full">
-        <div className="flex max-w-[1250px] gap-2 py-24">
-          <SoldriveTransferInnerContent forView="landing" />
+        <div className="flex w-[1250px] max-w-full gap-2 py-24">
+          <div className="flex w-full justify-between">
+            <SoldriveTransferInnerContent forView="landing" />
+            <div className="hidden flex-1 items-center justify-center md:flex">
+              <video className="h-72 w-72" autoPlay loop muted>
+                <source src={"/logo-animated.webm"} type="video/webm" />
+              </video>
+            </div>
+          </div>
         </div>
         {(shouldShowAuthModal || !userInformation?.did_public_address) && (
           <OnboardingDialog />
         )}
       </div>
-      <div></div>
     </div>
   );
 };

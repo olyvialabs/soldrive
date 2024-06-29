@@ -20,8 +20,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
+      {/**
+       * Temporary solution for overflow on x on "/transfer" route:
+       * overflow-x-hidden
+       */}
       <body
-        className={`font-sans ${inter.variable} min-h-screen bg-background`}
+        className={`font-sans ${inter.variable} min-h-screen overflow-x-hidden bg-background`}
       >
         {children}
         <Toaster position="top-center" />

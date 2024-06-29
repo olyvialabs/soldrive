@@ -11,7 +11,7 @@ export default function PlatformLayout({
 }) {
   return (
     <AllSolanaContent>
-      <div className="fixed w-full bg-purple-600 text-center">
+      <div className="w-full bg-purple-600 text-center md:fixed">
         <span className="w-full text-center text-sm">
           This is a beta version of our platform. Please avoid uploading any
           confidential or private information at this time.
