@@ -16,12 +16,15 @@ export interface AuthStore {
   changeAuthModalVisibility: (newValue: boolean) => void;
   subscriptionTimestamp: number;
   setSubscriptionTimestamp: (subscriptionTimestamp: number) => void;
+  ssrDownload: boolean;
+  setSsrDownload: (newValue: boolean) => void;
 }
 
 const initialState = {
   userInformation: null,
   shouldShowAuthModal: true,
   subscriptionTimestamp: 0,
+  ssrDownload: true,
 };
 
 const useAuthStore = create<AuthStore>()(
@@ -39,6 +42,9 @@ const useAuthStore = create<AuthStore>()(
       },
       setSubscriptionTimestamp: (subscriptionTimestamp: number) => {
         set({ subscriptionTimestamp });
+      },
+      setSsrDownload: (newValue: boolean) => {
+        set({ ssrDownload: newValue });
       },
     }),
     {

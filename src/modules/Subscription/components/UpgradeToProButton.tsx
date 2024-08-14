@@ -130,8 +130,7 @@ const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
       console.log("fromAta:", fromAta.address.toBase58());
       console.log("toAta:", toAta.address.toBase58());
 
-      const txHash = await program?.methods
-        .transferSplTokens(amount)
+      const txHash = await program?.methods?.transferSplTokens?.(amount)
         .accounts({
           from: wallet.publicKey,
           fromAta: fromAta.address,
@@ -188,6 +187,7 @@ const UpgradeToProButton = ({ onUpgrade }: { onUpgrade?: () => void }) => {
         className="mt-2 w-full text-white md:w-auto"
         loading={isLoading}
         onClick={transferBonkTokens}
+        disabled
       >
         Upgrade to PRO with $BONK
       </Button>

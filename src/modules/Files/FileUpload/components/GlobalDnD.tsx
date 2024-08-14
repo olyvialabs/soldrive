@@ -3,35 +3,15 @@ import { useDropzone } from "react-dropzone";
 import styled from "styled-components";
 import { useWallet } from "@solana/wallet-adapter-react";
 import ipfsClient from "./utils/IpfsConfiguration";
-import nacl from "tweetnacl";
-import bs58 from "bs58";
-import crypto from "crypto";
 import { FileIcon, FileMinusIcon, ReloadIcon } from "@radix-ui/react-icons";
 import { useSaveFileDataOnChain } from "./FileUploadButton";
-import { AllSolanaContent } from "~/modules/Auth/components/WalletConnectionButton";
 import { toast } from "sonner";
-import { useRouter } from "next/router";
 import { UserInformationData, useAuthStore } from "~/modules/Store/Auth/store";
-import { useUserFilesStore } from "~/modules/Store/UserFiles/store";
 import useGetAllFilesByWalletIndexer from "../../FileDisplayer/hooks/useGetAllFilesByWalletIndexer";
 import useContractIndexer from "../../hooks/useContractIndexer";
 import { useFilesStore } from "~/modules/Store/FileDisplayLayout/store";
 import { getIsUserSubscribed } from "~/modules/Store/Auth/selectors";
-import useGetAuthenticatedWalletKeys from "~/modules/User/hooks/useGetAuthenticatedWalletKeys";
 import { encrypt as eciesEncrypt } from "eciesjs";
-
-const getColor = (props) => {
-  if (props.isDragAccept) {
-    return "#00e676";
-  }
-  // if (props.isDragReject) {
-  //   return "#ff1744";
-  // }
-  if (props.isFocused) {
-    return "#2196f3";
-  }
-  return "#eeeeee";
-};
 
 const Container = styled.div``;
 
@@ -43,7 +23,6 @@ export const useEncryptionFileEncryption = () => {
   const { manualSyncFileCreation } = useContractIndexer();
   const { mintToken } = useSaveFileDataOnChain();
   const { changeForcedUploadFiles } = useFilesStore();
-  const { generateUniqueCredentials } = useGetAuthenticatedWalletKeys();
 
   const encryptFile = async (
     content: any,

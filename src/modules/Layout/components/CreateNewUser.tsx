@@ -22,25 +22,21 @@ import useContractIndexer from "~/modules/Files/hooks/useContractIndexer";
 import { toast } from "sonner";
 import useGetAuthenticatedWalletKeys from "~/modules/User/hooks/useGetAuthenticatedWalletKeys";
 import { DownloadIcon, HandIcon, InputIcon } from "@radix-ui/react-icons";
-
 const PROGRAM_ID = new PublicKey(env.NEXT_PUBLIC_USERS_CONTRACT_ADDRESS);
 
-// Matching the Rust struct with JavaScript class
 class UserMetadata {
-  user_solana: string;
-  did_public_address: string;
-
-  constructor({
-    user_solana,
-    did_public_address,
-  }: {
-    user_solana: string;
-    did_public_address: string;
-  }) {
-    this.user_solana = user_solana;
-    this.did_public_address = did_public_address;
+  constructor(properties) {
+    Object.assign(this, properties);
   }
 }
+
+class Assignable {
+  constructor(properties) {
+    Object.assign(this, properties);
+  }
+}
+
+class InstructionPayload extends Assignable {}
 
 const UserMetadataSchema = new Map([
   [
@@ -55,6 +51,19 @@ const UserMetadataSchema = new Map([
   ],
 ]);
 
+const InstructionPayloadSchema = new Map([
+  [
+    InstructionPayload,
+    {
+      kind: "struct",
+      fields: [
+        ["variant", "u8"],
+        ["user_metadata", UserMetadata],
+      ],
+    },
+  ],
+  ...UserMetadataSchema,
+]);
 const CreateUserButton: React.FC = () => {
   const wallet = useWallet();
   const [username, setUsername] = useState("");
@@ -87,7 +96,7 @@ const CreateUserButton: React.FC = () => {
     const { publicKeyString } = await generateUniqueCredentials();
     const newDidId = crypto.createHash("sha256").digest().toString();
     const didDocument = {
-      did: `did:v1:filesharing:${newDidId}`,
+      did: `did:v1:soldrive:${newDidId}`,
       username: username,
       walletPublicKey: walletPublicKey,
       didPublicKey: publicKeyString,
@@ -160,15 +169,28 @@ const CreateUserButton: React.FC = () => {
       did_public_address: result?.cid!,
     };
     const userMetadata = new UserMetadata(userData);
-
-    const userMetadataBuffer = Buffer.from(
-      serialize(UserMetadataSchema, userMetadata),
+    const instructionPayload = new InstructionPayload({
+      variant: 0, // 0 for UserMetadata
+      user_metadata: userMetadata,
+    });
+    const serializedData = serialize(
+      InstructionPayloadSchema!,
+      instructionPayload,
     );
+    const instructionBuffer = Buffer.from(serializedData);
+    // const userMetadataBuffer = Buffer.from(
+    //   serialize(UserMetadataSchema, userMetadata),
+    // );
 
+    // const customInstruction = new TransactionInstruction({
+    //   keys: [],
+    //   programId: PROGRAM_ID,
+    //   data: userMetadataBuffer,
+    // });
     const customInstruction = new TransactionInstruction({
-      keys: [],
+      keys: [{ pubkey: wallet.publicKey, isSigner: true, isWritable: true }],
       programId: PROGRAM_ID,
-      data: userMetadataBuffer,
+      data: instructionBuffer,
     });
     try {
       const connection = new Connection(

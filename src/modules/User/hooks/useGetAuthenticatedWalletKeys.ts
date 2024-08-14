@@ -7,7 +7,7 @@ import { PrivateKey } from "eciesjs";
 
 const useGetAuthenticatedWalletKeys = () => {
   const generateUniqueCredentials = async () => {
-    const provider = window.solana;
+    const provider = (window as any).solana;
     if (!provider) {
       toast("Solana Provider was not found :(", {
         description: "Please try installing solana before continuing",

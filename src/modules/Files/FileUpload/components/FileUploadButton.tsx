@@ -30,17 +30,18 @@ const PROGRAM_ID = new PublicKey(
 );
 
 class TokenMetadata {
-  constructor({ file_id, name, weight, file_parent_id, cid, typ, from, to }) {
-    this.file_id = file_id;
-    this.name = name;
-    this.weight = BigInt(weight);
-    this.file_parent_id = file_parent_id;
-    this.cid = cid;
-    this.typ = typ;
-    this.from = from;
-    this.to = to;
+  constructor(properties) {
+    Object.assign(this, properties);
   }
 }
+
+class Assignable {
+  constructor(properties) {
+    Object.assign(this, properties);
+  }
+}
+
+class InstructionPayload extends Assignable {}
 
 const TokenMetadataSchema = new Map([
   [
@@ -56,9 +57,24 @@ const TokenMetadataSchema = new Map([
         ["typ", "string"],
         ["from", "string"],
         ["to", "string"],
+        ["version", "string"],
       ],
     },
   ],
+]);
+
+const InstructionPayloadSchema = new Map([
+  [
+    InstructionPayload,
+    {
+      kind: "struct",
+      fields: [
+        ["variant", "u8"],
+        ["token_metadata", TokenMetadata],
+      ],
+    },
+  ],
+  ...TokenMetadataSchema,
 ]);
 
 export const useSaveFileDataOnChain = () => {
@@ -107,17 +123,30 @@ export const useSaveFileDataOnChain = () => {
         typ: typ || "file",
         from,
         to,
+        version: "1",
       };
-      const metadata = new TokenMetadata(newToken);
+      const tokenMetadata = new TokenMetadata(newToken);
 
-      const metadataBuffer = Buffer.from(
-        serialize(TokenMetadataSchema, metadata),
+      const instructionPayload = new InstructionPayload({
+        variant: 1, // 1 for TokenMetadata
+        token_metadata: tokenMetadata,
+      });
+
+      // Serialize the instruction payload
+      const serializedData = serialize(
+        InstructionPayloadSchema,
+        instructionPayload,
       );
+      const instructionBuffer = Buffer.from(serializedData);
 
+      // Define the instruction for sending the token metadata
       const customInstruction = new TransactionInstruction({
-        keys: [],
+        keys: [
+          { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
+          // Add more keys as needed by your instruction
+        ],
         programId: PROGRAM_ID,
-        data: metadataBuffer,
+        data: instructionBuffer,
       });
 
       let transaction = new Transaction().add(customInstruction);

@@ -4,8 +4,10 @@ import { FetchFilesResponse, FileDetails } from "../FileDisplayer/types";
 import getUserSubscriptionByWalletQuery from "../FileUpload/query/getUserSubscriptionByWalletQuery";
 import getFileByCidQuery from "../FileUpload/query/getFileByCidQuery";
 import searchUsernamesQuery from "../FileUpload/query/searchUsernamesQuery";
+import { env } from "~/env";
 
-const indexerUrl = process.env.NEXT_PUBLIC_INDEXER_SERVICE_URL;
+const indexerUrl = env.NEXT_PUBLIC_INDEXER_SERVICE_URL;
+
 const useContractIndexer = () => {
   const getFileByCid = async (
     cid: string,

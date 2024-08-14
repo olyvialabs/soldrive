@@ -1,14 +1,16 @@
-import ipfsClient from "../../FileUpload/components/utils/IpfsConfiguration";
 import { useFilesStore } from "../../../Store/FileDisplayLayout/store";
 import { useUserFilesStore } from "~/modules/Store/UserFiles/store";
 import { FileDetails } from "../types";
 import useGetAuthenticatedWalletKeys from "~/modules/User/hooks/useGetAuthenticatedWalletKeys";
 import { toast } from "sonner";
 import useContractIndexer from "../../hooks/useContractIndexer";
-import { decrypt as eciesDecrypt } from "eciesjs";
+import { useAuthStore } from "~/modules/Store/Auth/store";
+import { decryptIpfsFile } from "../../utils/decryptIpfsFile";
+
 const useDownloadFiles = () => {
   const { fileSelection } = useFilesStore();
   const { files: allFiles } = useUserFilesStore();
+  const { ssrDownload } = useAuthStore();
   const { generateUniqueCredentials } = useGetAuthenticatedWalletKeys();
   const { getUserByWallet } = useContractIndexer();
 
@@ -26,27 +28,46 @@ const useDownloadFiles = () => {
     }
 
     try {
-      const fileToDecryptChunks = [];
-      for await (const chunk of ipfsClient.cat(foundItem.cid)) {
-        fileToDecryptChunks.push(chunk);
-      }
-      // Decode the private key string
-      // const privateKey = bs58.decode(privateKeyUserDid!).slice(0, 32);
-      // Use the first 32 bytes of the private key as the shared secret
-      // const publicKey = bs58.decode(publicKeyUserDid!).slice(0, 32);
-      const encryptedFileFromIpfs = Buffer.concat(fileToDecryptChunks);
-      const decryptedFile = eciesDecrypt(
+      // const data = Buffer.from(
+      //   `${foundItem.cid}||${privateKeyUserDid}`,
+      // ).toString("base64");
+      // const response = await fetch("/api/forward-download", {
+      //   method: "POST",
+      //   body: JSON.stringify({
+      //     metadata: {
+      //       version: 1,
+      //       // to avoid having weird structure in the JSON result
+      //       data,
+      //     },
+      //   }),
+      // });
+      // if (!response.ok) {
+      //   throw new Error(`Error: ${response.statusText}`);
+      // }
+      // const contentDisposition = response.headers.get("Content-Disposition");
+      // const filename = foundItem.name;
+
+      // // Convert the response body to a Blob
+      // const blob = await response.blob();
+      // // Create a URL for the Blob and create a link element to download the file
+      // const url = URL.createObjectURL(blob);
+      // const link = document.createElement("a");
+      // link.href = url;
+      // link.download = filename;
+
+      // // Append the link to the document body and trigger a click to start the download
+      // document.body.appendChild(link);
+      // link.click();
+
+      // // Clean up the link element and URL object
+      // document.body.removeChild(link);
+      // URL.revokeObjectURL(url);
+      // return;
+      const decryptedFile = await decryptIpfsFile(
+        foundItem.cid,
         privateKeyUserDid,
-        encryptedFileFromIpfs,
       );
 
-      // const decryptedFile = nacl.secretbox.open(
-      //   encryptedFileFromIpfs.slice(nacl.secretbox.nonceLength),
-      //   encryptedFileFromIpfs.slice(0, nacl.secretbox.nonceLength),
-      //   //  publicKey,
-      //   privateKey,
-      // );
-      //decrypt(publicKeyUserDid.toHex(), data)
       if (!decryptedFile) {
         toast("You don't have permissions to download this file", {
           description: "Ask for permissions to the owner first!",
@@ -58,9 +79,11 @@ const useDownloadFiles = () => {
       var blob = new Blob([decryptedFile], {
         type: contentType,
       });
+
       if (options?.returnBlob) {
         return blob;
       }
+
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       document.body.appendChild(a);
