@@ -29,6 +29,7 @@ export const useEncryptionFileEncryption = () => {
     fileName: string,
     size: number,
     destinationUser?: UserInformationData,
+    isPublicFile?: boolean,
   ) => {
     const myUserWallet = wallet.publicKey?.toString();
     destinationUser = destinationUser || userInformation!;
@@ -44,10 +45,11 @@ export const useEncryptionFileEncryption = () => {
       // Otherwise, assume it's a string and encode it
       encodedMessage = encoder.encode(content);
     }
-    const encryptedMessage = eciesEncrypt(publicKey, encodedMessage);
+    const fileContent = !!isPublicFile
+      ? Buffer.from(encodedMessage)
+      : eciesEncrypt(publicKey, encodedMessage);
 
-    // Upload the combined encrypted data to IPFS
-    const added = await ipfsClient.add(encryptedMessage);
+    const added = await ipfsClient.add(fileContent);
 
     const newToken = {
       name: fileName,
@@ -56,7 +58,7 @@ export const useEncryptionFileEncryption = () => {
       typ: "file",
       weight: size,
       from: myUserWallet!,
-      to: destinationUser?.user_solana!, //destinationWallet || myUserWallet!,
+      to: isPublicFile ? "" : destinationUser?.user_solana!, //destinationWallet || myUserWallet!,
     };
     await mintToken(newToken);
     toast(`New file ${fileName} created.`);

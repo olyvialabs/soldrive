@@ -10,7 +10,7 @@ import {
   AllSolanaContent,
   WalletConnectionButton,
 } from "~/modules/Auth/components/WalletConnectionButton";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import useContractIndexer from "~/modules/Files/hooks/useContractIndexer";
 import { Skeleton } from "~/components/ui/skeleton";
 import { UserInformationData, useAuthStore } from "~/modules/Store/Auth/store";
@@ -20,8 +20,34 @@ import { Button } from "~/components/ui/button";
 import { useInitializeFilesStores } from "~/modules/Files/FileDisplayer/hooks/useInitializeFilesStores";
 import Link from "next/link";
 import { BorderBeam } from "~/components/ui/border-beam";
+type ForView = "landing" | "dialog" | undefined;
+type DialogItemProps = {
+  forView?: "landing" | "dialog";
+  children: ReactNode;
+};
 
-const OnboardingDialogContent = () => {
+const DialogHeaderContent = ({ forView, children }: DialogItemProps) => {
+  if (forView === "landing") {
+    return <div className="flex flex-col">{children}</div>;
+  }
+  return <DialogHeader>{children}</DialogHeader>;
+};
+
+const DialogTitleContent = ({ forView, children }: DialogItemProps) => {
+  if (forView === "landing") {
+    return <span className="text-xl font-bold">{children}</span>;
+  }
+  return <DialogTitle>{children}</DialogTitle>;
+};
+
+const DialogDescriptionContent = ({ forView, children }: DialogItemProps) => {
+  if (forView === "landing") {
+    return <span className="">{children}</span>;
+  }
+  return <DialogDescription>{children}</DialogDescription>;
+};
+
+export const OnboardingDialogContent = ({ forView }: { forView?: ForView }) => {
   const wallet = useWallet();
   const [initialLoading, setInitialLoading] = useState(true);
   const [errorRetrievalMsg, setErrorRetrievalMsg] = useState("");
@@ -85,28 +111,32 @@ const OnboardingDialogContent = () => {
       findUserWithWalletRegistered();
     }
   }, [wallet?.publicKey]);
-  const HeaderLogo = (
-    <Link href="/">
-      <div className="mb-2 flex flex-row items-center">
-        <img
-          src="/assets/images/LogoSolo.png"
-          alt="SolDrive Logo"
-          className="mr-2 w-12"
-        />
-        <span className="font-bold">SOLDRIVE</span>
-      </div>
-    </Link>
-  );
+
+  const HeaderLogo =
+    forView === "landing" ? null : (
+      <Link href="/">
+        <div className="mb-2 flex flex-row items-center">
+          <img
+            src="/assets/images/LogoSolo.png"
+            alt="SolDrive Logo"
+            className="mr-2 w-12"
+          />
+          <span className="font-bold">SOLDRIVE</span>
+        </div>
+      </Link>
+    );
   if (!wallet?.connected || !wallet?.publicKey?.toString()) {
     return (
       <>
-        <DialogHeader>
+        <DialogHeaderContent forView={forView}>
           {HeaderLogo}
-          <DialogTitle>Authenticate with your Wallet</DialogTitle>
-          <DialogDescription>
+          <DialogTitleContent forView={forView}>
+            Authenticate with your Wallet
+          </DialogTitleContent>
+          <DialogDescriptionContent forView={forView}>
             To continue, please authenticate first.
-          </DialogDescription>
-        </DialogHeader>
+          </DialogDescriptionContent>
+        </DialogHeaderContent>
         <div className="grid gap-4 py-4">
           <WalletConnectionButton type="connect" />
         </div>
@@ -117,13 +147,15 @@ const OnboardingDialogContent = () => {
   if (errorRetrievalMsg) {
     return (
       <div>
-        <DialogHeader>
+        <DialogHeaderContent forView={forView}>
           {HeaderLogo}
-          <DialogTitle>Create Your Decentralized Identifier (DID)</DialogTitle>
-          <DialogDescription>
+          <DialogTitleContent forView={forView}>
+            Create Your Decentralized Identifier (DID)
+          </DialogTitleContent>
+          <DialogDescriptionContent forView={forView}>
             Please choose a username to proceed.
-          </DialogDescription>
-        </DialogHeader>
+          </DialogDescriptionContent>
+        </DialogHeaderContent>
         <div className="mt-2 flex w-full flex-col">
           <p>
             An error occurred while retrieving your information from your
@@ -147,13 +179,15 @@ const OnboardingDialogContent = () => {
   if (initialLoading) {
     return (
       <div>
-        <DialogHeader>
+        <DialogHeaderContent forView={forView}>
           {HeaderLogo}
-          <DialogTitle>Wallet Authentication Required</DialogTitle>
-          <DialogDescription>
+          <DialogTitleContent forView={forView}>
+            Wallet Authentication Required
+          </DialogTitleContent>
+          <DialogDescriptionContent forView={forView}>
             Please authenticate with your wallet to proceed.
-          </DialogDescription>
-        </DialogHeader>
+          </DialogDescriptionContent>
+        </DialogHeaderContent>
         <div className="flex items-center space-x-4">
           <Skeleton className="h-12 w-12 rounded-full" />
           <div className="space-y-2">
@@ -171,13 +205,15 @@ const OnboardingDialogContent = () => {
   if (shouldShowCreateDid) {
     return (
       <div>
-        <DialogHeader>
+        <DialogHeaderContent forView={forView}>
           {HeaderLogo}
-          <DialogTitle>Create Your Decentralized Identifier (DID)</DialogTitle>
-          <DialogDescription>
+          <DialogTitleContent forView={forView}>
+            Create Your Decentralized Identifier (DID)
+          </DialogTitleContent>
+          <DialogDescriptionContent forView={forView}>
             Please choose a username to proceed.
-          </DialogDescription>
-        </DialogHeader>
+          </DialogDescriptionContent>
+        </DialogHeaderContent>
         <div className="grid gap-4 py-4">
           <CreateUserButton />
           <p className="text-primary-500 text-sm">
@@ -193,12 +229,14 @@ const OnboardingDialogContent = () => {
 
   return (
     <div>
-      <DialogHeader>
-        <DialogTitle>Authenticate with your Wallet</DialogTitle>
-        <DialogDescription>
+      <DialogHeaderContent forView={forView}>
+        <DialogTitleContent forView={forView}>
+          Authenticate with your Wallet
+        </DialogTitleContent>
+        <DialogDescriptionContent forView={forView}>
           To continue, please authenticate first.
-        </DialogDescription>
-      </DialogHeader>
+        </DialogDescriptionContent>
+      </DialogHeaderContent>
       <div className="mt-2 flex">
         <span>
           It seems like you don't have a wallet provider installed on your

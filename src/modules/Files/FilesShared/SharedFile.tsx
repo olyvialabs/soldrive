@@ -22,6 +22,7 @@ import {
 } from "~/components/ui/card";
 import useDownloadFiles from "../FileDisplayer/hooks/useDownloadFiles";
 import Link from "next/link";
+import { toast } from "sonner";
 
 const useFileFromRoute = () => {
   const { getFileByCid } = useContractIndexer();
@@ -52,6 +53,7 @@ const useFileFromRoute = () => {
 const SharedFile = ({ cid }: { cid: string }) => {
   const { getFilesByWalletFromIndexer, error, loading, currentFileData } =
     useFileFromRoute();
+  const { publicKey } = useWallet();
   const { shouldShowAuthModal, userInformation } = useAuthStore();
   const [isDownloadingFile, setIsDownloadingFile] = useState(false);
   const { downloadFiles } = useDownloadFiles();
@@ -153,7 +155,19 @@ const SharedFile = ({ cid }: { cid: string }) => {
                 loading={isDownloadingFile}
                 disabled={isDownloadingFile}
                 className="w-full text-white"
-                onClick={() => downloadFile()}
+                onClick={() => {
+                  if (
+                    !!currentFileData.to &&
+                    currentFileData.to !== publicKey?.toBase58()
+                  ) {
+                    toast("You don't have permissions to download this file", {
+                      description:
+                        "If you uploaded this file, only the other destination wallet can download it.",
+                    });
+                    return;
+                  }
+                  downloadFile();
+                }}
               >
                 <DownloadIcon className="mr-1" /> Download
               </Button>
@@ -161,9 +175,9 @@ const SharedFile = ({ cid }: { cid: string }) => {
           </Card>
         </div>
       </div>
-      {(shouldShowAuthModal || !userInformation?.did_public_address) && (
+      {/* {(shouldShowAuthModal || !userInformation?.did_public_address) && (
         <OnboardingDialog />
-      )}
+      )} */}
     </div>
   );
 };

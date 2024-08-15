@@ -35,6 +35,7 @@ import useGetAuthenticatedWalletKeys from "~/modules/User/hooks/useGetAuthentica
 import { UsernameSearchInput } from "./UsernameSearchInput";
 import { BorderBeam } from "~/components/ui/border-beam";
 import ShineBorder from "~/components/ui/shine-border";
+import { OnboardingDialogContent } from "~/modules/Layout/components/OnboardingDialog";
 
 type ForView = "landing" | "dialog";
 const TransferInnerContentHeader = ({ forView }: { forView: ForView }) => {
@@ -63,6 +64,7 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
     name: string;
     size: number;
   } | null>(null);
+  const [isPublicSelected, setIsPublicSelected] = useState(true);
   const [destinationUser, setDestinationUser] =
     useState<UserInformationData | null>(null);
   const { encryptFile } = useEncryptionFileEncryption();
@@ -71,7 +73,7 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
   const { files: allFiles } = useUserFilesStore();
   const { fileSelection } = useFilesStore();
   const { downloadSpecificFile } = useDownloadFiles();
-  const { userInformation } = useAuthStore();
+  const { shouldShowAuthModal, userInformation } = useAuthStore();
   const { generateUniqueCredentials } = useGetAuthenticatedWalletKeys();
   const handleFileChange = (event) => {
     if (event.target.files && event.target.files[0]) {
@@ -92,7 +94,10 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
       return;
     }
 
-    if (!destinationUser) {
+    if (
+      (!destinationUser && !isPublicSelected && forView === "landing") ||
+      (!destinationUser && forView === "dialog")
+    ) {
       toast("Add a destination wallet address to continue", {
         position: "top-center",
         icon: <InputIcon />,
@@ -137,7 +142,8 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
               fileUint8Array,
               foundItem?.name || "Unknown",
               foundItem?.weight || 0,
-              destinationUser,
+              isPublicSelected ? ({} as any) : destinationUser,
+              isPublicSelected,
             ),
           );
         }
@@ -186,7 +192,8 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
           contentAsUint8Array,
           selectedFile?.name || "Unknown",
           selectedFile?.size || 0,
-          destinationUser,
+          isPublicSelected ? ({} as any) : destinationUser,
+          isPublicSelected,
         );
         setGeneratedCid(encrypedFile?.cid || "");
         setIsUploadingFile(false);
@@ -218,6 +225,11 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
           {generatedCid ? (
             <div className="my-4 px-4">
               <CardDescription className="text-sm">
+                <Link href="/app">
+                  <Button variant="link" className="p-0  text-purple-500">
+                    <ArrowLeftIcon /> Return to App
+                  </Button>
+                </Link>
                 <p>
                   File was sent correctly. You can access this via this link:
                 </p>
@@ -234,6 +246,17 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
             <>
               {forView === "landing" && (
                 <>
+                  <div className={"mt-2 flex flex-col space-y-4 px-2 md:px-4"}>
+                    <div>
+                      <UsernameSearchInput
+                        setCurrentUser={setDestinationUser}
+                        currentUser={destinationUser}
+                        forView={forView}
+                        isPublicSelected={isPublicSelected}
+                        setIsPublicSelected={setIsPublicSelected}
+                      />
+                    </div>
+                  </div>
                   <div className="mt-4 px-2 md:px-4">
                     <CardHeader
                       onClick={() => {
@@ -273,7 +296,21 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
                 </>
               )}
               <CardContent className="flex flex-col px-2 pb-4 md:px-4">
-                {isSubscribed ? (
+                {forView === "dialog" && (
+                  <div className="mt-2 flex flex-col space-y-4 px-2 md:px-4">
+                    <div>
+                      <UsernameSearchInput
+                        setCurrentUser={setDestinationUser}
+                        currentUser={destinationUser}
+                        forView={forView}
+                        isPublicSelected={isPublicSelected}
+                        setIsPublicSelected={setIsPublicSelected}
+                        forView={forView}
+                      />
+                    </div>
+                  </div>
+                )}
+                {/* {isSubscribed ? (
                   <div className="mb-4">
                     <span className="text-xs text-gray-500">
                       You have PRO plan. You don't have a limit for each file.
@@ -296,15 +333,8 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
                       Increase limit
                     </Button>
                   </div>
-                )}
-                <div className="flex flex-col space-y-4">
-                  <div>
-                    <UsernameSearchInput
-                      setCurrentUser={setDestinationUser}
-                      currentUser={destinationUser}
-                      forView={forView}
-                    />
-                  </div>
+                )} */}
+                {forView === "landing" && (
                   <div className="mt-2 flex flex-col">
                     <Label className="break-all text-base font-semibold tracking-tight">
                       Your information
@@ -319,7 +349,7 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
                       </span>
                     </div>
                   </div>
-                </div>
+                )}
               </CardContent>
               <CardFooter className="flex items-center justify-between border-t p-4">
                 <Button
@@ -343,8 +373,25 @@ const SoldriveTransferInnerContent = ({ forView }: { forView: ForView }) => {
   );
 
   if (forView === "landing") {
+    if (shouldShowAuthModal || !userInformation?.did_public_address) {
+      return (
+        <Card
+          className={cn(
+            "relative",
+            "max-w-full rounded-lg shadow-sm md:w-[20em] md:max-w-sm",
+          )}
+        >
+          <BorderBeam />
+          <div style={{ zIndex: 100 }} className="relative">
+            <TransferInnerContentHeader forView={forView} />
+            <div className="p-4">
+              <OnboardingDialogContent forView={forView} />
+            </div>
+          </div>
+        </Card>
+      );
+    }
     return content;
-    return <div className="flex flex-col justify-center">{content}</div>;
   }
   return content;
 };

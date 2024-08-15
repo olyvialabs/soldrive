@@ -17,7 +17,11 @@ const useDownloadFiles = () => {
   const downloadSpecificFile = async (
     fileId: string,
     privateKeyUserDid: string,
-    options?: { specificTargetedFile?: FileDetails; returnBlob?: boolean },
+    options?: {
+      specificTargetedFile?: FileDetails;
+      returnBlob?: boolean;
+      isPublicFile?: boolean;
+    },
   ) => {
     const foundItem = options?.specificTargetedFile
       ? options?.specificTargetedFile
@@ -63,9 +67,11 @@ const useDownloadFiles = () => {
       // document.body.removeChild(link);
       // URL.revokeObjectURL(url);
       // return;
+
       const decryptedFile = await decryptIpfsFile(
         foundItem.cid,
         privateKeyUserDid,
+        options?.isPublicFile,
       );
 
       if (!decryptedFile) {
@@ -111,18 +117,23 @@ const useDownloadFiles = () => {
       return;
     }
 
-    const { privateKeyString } = await generateUniqueCredentials();
+    const isPublicFile = !specificTargetedFile?.to;
+    console.log({ specificTargetedFile });
+    console.log({ specificTargetedFile });
+    const { privateKeyString } = isPublicFile
+      ? { privateKeyString: "" }
+      : await generateUniqueCredentials();
     if (!specificTargetedFile) {
       for (let fileId of fileSelection.filesSelected) {
         // not valid because public change between file
         // and it's taking self user public key
-        await downloadSpecificFile(fileId, privateKeyString);
+        await downloadSpecificFile(fileId, privateKeyString, { isPublicFile });
       }
     } else {
       await downloadSpecificFile(
         specificTargetedFile.id, // we don't care, we care about specificTargetedFile obj
         privateKeyString,
-        { specificTargetedFile },
+        { specificTargetedFile, isPublicFile },
       );
     }
   };

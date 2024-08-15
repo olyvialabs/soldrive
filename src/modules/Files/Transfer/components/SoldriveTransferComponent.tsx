@@ -25,7 +25,7 @@ const SoldriveTransferComponent = () => {
   }, [wallet?.publicKey]);
 
   return (
-    <div className="z-0 mx-auto flex max-w-full flex-col justify-between px-8 md:w-[1250px] md:flex-row">
+    <div className="z-0 mx-auto flex max-w-full flex-col justify-between px-2 md:w-[1250px] md:flex-row md:px-8">
       <div className="flex w-full">
         <div className="flex w-[1250px] max-w-full gap-2 py-24">
           <div className="flex w-full justify-between">
@@ -37,9 +37,9 @@ const SoldriveTransferComponent = () => {
             </div>
           </div>
         </div>
-        {(shouldShowAuthModal || !userInformation?.did_public_address) && (
+        {/* {(shouldShowAuthModal || !userInformation?.did_public_address) && (
           <OnboardingDialog />
-        )}
+        )} */}
       </div>
     </div>
   );

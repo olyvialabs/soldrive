@@ -13,16 +13,22 @@ import { CommandLoading } from "cmdk";
 import { Skeleton } from "~/components/ui/skeleton";
 import _ from "lodash";
 import { UserInformationData } from "~/modules/Store/Auth/store";
-import { PersonIcon } from "@radix-ui/react-icons";
+import { GlobeIcon, PersonIcon } from "@radix-ui/react-icons";
 import { Button } from "~/components/ui/button";
+import { cn } from "~/lib/utils";
+import { formatWalletAddress } from "~/modules/User/utils";
 export function UsernameSearchInput({
   currentUser,
+  isPublicSelected,
+  setIsPublicSelected,
   setCurrentUser,
   forView,
 }: {
   currentUser: UserInformationData | null;
   forView: any;
   setCurrentUser: (data: UserInformationData | null) => void;
+  isPublicSelected: boolean;
+  setIsPublicSelected: (data: any) => void;
 }) {
   const [currentDisplayItems, setCurrentDisplayItems] = useState<
     UserInformationData[]
@@ -57,33 +63,74 @@ export function UsernameSearchInput({
 
   return (
     <>
-      <div
-        onClick={(e) => {
-          // if (forView === "dialog") {
-          //   e.preventDefault();
-          //   e.stopPropagation();
-          // }
-          setOpen(true);
-        }}
-        className="flex cursor-pointer flex-row items-center space-x-2 space-y-1.5 rounded-lg border px-2 py-1 hover:bg-accent"
-      >
-        <PersonIcon />
-        <div className="flex w-full flex-1 flex-col">
-          <span className="break-all text-lg font-semibold tracking-tight">
-            Destination
-          </span>
-
-          {currentUser?.username && (
-            <span className="break-all">
-              For <b className="text-purple-500">{currentUser?.username}</b>{" "}
-              with wallet {currentUser?.user_solana}
-            </span>
+      <div>
+        <div
+          className={cn(
+            " gap-0.5",
+            forView === "dialog" ? "w-full" : "grid grid-cols-2",
           )}
-          <p className="break-all  text-sm text-muted-foreground">
-            {currentUser?.username
-              ? "Click here to modify"
-              : "Click here and write the username"}
-          </p>
+        >
+          <div
+            onClick={(e) => {
+              // if (forView === "dialog") {
+              //   e.preventDefault();
+              //   e.stopPropagation();
+              // }
+              setOpen(true);
+            }}
+            className={cn(
+              "flex cursor-pointer flex-row items-center space-x-2 space-y-1.5 rounded-lg border p-2 hover:bg-accent",
+              !!currentUser?.username
+                ? "bg-purple-700 hover:bg-purple-800"
+                : "",
+            )}
+          >
+            <div className="flex w-full flex-1 flex-col">
+              <span className="break-all text-lg font-semibold tracking-tight">
+                <PersonIcon className="mb-2" />
+                To User
+              </span>
+
+              {currentUser?.username && (
+                <span className="break-all">
+                  To <b className="text-black">{currentUser?.username}</b> with
+                  wallet {formatWalletAddress(currentUser?.user_solana)}
+                </span>
+              )}
+              <p className="break-word  text-sm text-muted-foreground">
+                {currentUser?.username
+                  ? "Click here to modify"
+                  : "Find by username"}
+              </p>
+            </div>
+          </div>
+          {forView !== "dialog" && (
+            <div
+              onClick={(e) => {
+                if (forView === "dialog") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+                setIsPublicSelected(true);
+                setCurrentUser(null);
+              }}
+              className={cn(
+                "flex cursor-pointer flex-row items-center space-x-2 space-y-1.5 rounded-lg border p-2 hover:bg-accent",
+                isPublicSelected ? "bg-purple-700 hover:bg-purple-800" : "",
+              )}
+            >
+              <div className="flex w-full flex-1 flex-col">
+                <span className="break-all text-lg font-semibold tracking-tight">
+                  <GlobeIcon className="mb-2" />
+                  Public
+                </span>
+
+                <p className="break-word  text-sm text-muted-foreground">
+                  Anyone with link
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       <CommandDialog open={open} onOpenChange={setOpen}>
@@ -96,18 +143,25 @@ export function UsernameSearchInput({
           }}
         />
         <CommandList style={{ zIndex: 999999 }}>
-          {loading && <CommandLoading>Loading users...</CommandLoading>}
-          <CommandEmpty>
-            {!input
-              ? "Try searching, users will be listed here"
-              : "No results found. "}
-          </CommandEmpty>
+          {loading && (
+            <CommandLoading>
+              <CommandEmpty>Loading users...</CommandEmpty>
+            </CommandLoading>
+          )}
+          {!loading && (
+            <CommandEmpty>
+              {!input
+                ? "Try searching, users will be listed here"
+                : "No results found. "}
+            </CommandEmpty>
+          )}
           {currentDisplayItems.map((item, index) => {
             return (
               <CommandItem
                 onSelect={(e) => {
                   setCurrentUser(item);
                   setOpen(false);
+                  setIsPublicSelected(false);
                 }}
                 disabled={false}
                 aria-disabled={false}
@@ -120,6 +174,7 @@ export function UsernameSearchInput({
                   onClick={() => {
                     setCurrentUser(item);
                     setOpen(false);
+                    setIsPublicSelected(false);
                   }}
                 >
                   <PersonIcon className="mr-1" />
