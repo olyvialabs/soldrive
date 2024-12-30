@@ -41,7 +41,7 @@ class Assignable {
   }
 }
 
-class InstructionPayload extends Assignable {}
+class InstructionPayload extends Assignable { }
 
 const TokenMetadataSchema = new Map([
   [
@@ -151,12 +151,12 @@ export const useSaveFileDataOnChain = () => {
 
       let transaction = new Transaction().add(customInstruction);
       transaction.recentBlockhash = (
-        await connection.getRecentBlockhash()
+        await connection.getLatestBlockhash()
       ).blockhash;
       transaction.feePayer = wallet.publicKey;
 
       // Assign a recent blockhash to the transaction
-      const { blockhash } = await connection.getRecentBlockhash("finalized");
+      const { blockhash } = await connection.getLatestBlockhash("finalized");
       transaction.recentBlockhash = blockhash;
 
       // Sign the transaction through the wallet

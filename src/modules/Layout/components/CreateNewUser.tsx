@@ -36,7 +36,7 @@ class Assignable {
   }
 }
 
-class InstructionPayload extends Assignable {}
+class InstructionPayload extends Assignable { }
 
 const UserMetadataSchema = new Map([
   [
@@ -199,7 +199,7 @@ const CreateUserButton: React.FC = () => {
       );
       let transaction = new Transaction().add(customInstruction);
       transaction.recentBlockhash = (
-        await connection.getRecentBlockhash()
+        await connection.getLatestBlockhash()
       ).blockhash;
       transaction.feePayer = wallet.publicKey;
 
